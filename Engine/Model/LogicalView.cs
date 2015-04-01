@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Engine.Tools;
+using MySql.Data.MySqlClient;
 
 namespace Engine.Model
 {
@@ -16,7 +17,7 @@ namespace Engine.Model
 
         public LogicalView(string rawInput)
         {
-            
+            rawInput = StringTools.RemoveDiacritics(rawInput);
             rawInput = WebUtility.HtmlDecode(rawInput);
             _data = rawInput;
             Title = HtmlTools.ExtractTitle(rawInput);
@@ -52,6 +53,9 @@ namespace Engine.Model
 
         private void AddTerm(String term)
         {
+            term = term.ToLower();
+            term = term.ToLowerInvariant();
+            term = term.Trim();
             if (IndexTermsCount.ContainsKey(term))
             {
                 IndexTermsCount[term]++;
@@ -73,7 +77,7 @@ namespace Engine.Model
                     _data = client.DownloadString(SourceUri);
                    
                 }
-                
+                _data = StringTools.RemoveDiacritics(_data);
                 _data = WebUtility.HtmlDecode(_data);
                 Title = HtmlTools.ExtractTitle(_data);
             }
@@ -85,20 +89,16 @@ namespace Engine.Model
             if(Title.Length>0)
             foreach (var term in DivideStringInGroups(Title,GroupSize))
             {
-                AddTerm(term);
+                if(term.Length==GroupSize) AddTerm(term);
             }
 
             if(Data.Length>0)
             foreach (var term in DivideStringInGroups(_data, GroupSize))
             {
-                AddTerm(term);
+                if (term.Length == GroupSize) AddTerm(term);
             }
 
             IsInitialized = true;
-        }
-
-        private LogicalView()
-        {
         }
 
         private static IEnumerable<string> DivideStringInGroups(string source, int groupSize)

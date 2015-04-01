@@ -1,6 +1,6 @@
 ﻿namespace Engine.Model
 {
-    class Document
+    public class Weight
     {
     }
 }
