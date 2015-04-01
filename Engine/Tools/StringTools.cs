@@ -1,14 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Engine.Tools
 {
     public abstract class StringTools
     {
+        // \p{Mn} or \p{Non_Spacing_Mark}: 
+        //   a character intended to be combined with another 
+        //   character without taking up extra space 
+        //   (e.g. accents, umlauts, etc.). 
+        private readonly static Regex NonSpacingMarkRegex =
+            new Regex(@"\p{Mn}", RegexOptions.Compiled);
+
+        public static string RemoveDiacritics(string text)
+        {
+            if (text == null)
+                return string.Empty;
+
+            var normalizedText =
+                text.Normalize(NormalizationForm.FormD);
+
+            return NonSpacingMarkRegex.Replace(normalizedText, string.Empty);
+        }
+
         public static string RemoveNonChar(string source)
         {
             var array = new char[source.Length];
