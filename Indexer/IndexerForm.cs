@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Engine;
+using Engine.Database.Interfaces;
+using Engine.Database.Repositories;
 using Engine.Model;
 using Indexer.Properties;
 
@@ -19,6 +14,8 @@ namespace Indexer
         {
             InitializeComponent();
         }
+
+        private BindingList<LogicalView> _documentList = new BindingList<LogicalView>(); 
 
         private void btnTests_Click(object sender, EventArgs e)
         {
@@ -35,10 +32,10 @@ namespace Indexer
         {
             this.Close();
         }
-
-        private void testsToolStripMenuItem_Click(object sender, EventArgs e)
+        IDocumentRepository _repo = new MySqlDocumentRepository();
+        private void UploadAllToDB(object sender, EventArgs e)
         {
-
+            _repo.InsertBatch(_documentList);
         }
 
         private void btnAddUrl_Click(object sender, EventArgs e)
@@ -47,7 +44,7 @@ namespace Indexer
             {
                 var contentUri = new Uri(txtUrl.Text);
                 var lview = new LogicalView(contentUri);
-                lstUrs.Items.Add(lview);
+                _documentList.Add(lview);
                 txtUrl.Text = string.Empty;
             }
             catch (UriFormatException er)
@@ -62,7 +59,7 @@ namespace Indexer
             if (selectedItem != null && !selectedItem.IsInitialized)
             {
                 selectedItem.Initialize();
-                lstUrs.Items[lstUrs.SelectedIndex] = lstUrs.SelectedItem;
+
             }
             LoadInForm(selectedItem);
         }
@@ -77,6 +74,16 @@ namespace Indexer
                 lblUrl.Text = selectedItem.SourceUri.ToString();
                 
             }
+        }
+
+        private void startSererToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void IndexerForm_Load(object sender, EventArgs e)
+        {
+            lstUrs.DataSource = _documentList;
         }
     }
 }

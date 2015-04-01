@@ -1,11 +1,14 @@
-﻿namespace Indexer
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace Indexer
 {
     partial class IndexerForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -39,17 +42,19 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.startSererToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtUrl = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.btnAddUrl = new System.Windows.Forms.Button();
             this.lstUrs = new System.Windows.Forms.ListBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.lblUrl = new System.Windows.Forms.LinkLabel();
+            this.lblNoOfKeywords = new System.Windows.Forms.Label();
+            this.lblInfoTitle = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.lblInfoTitle = new System.Windows.Forms.Label();
-            this.lblNoOfKeywords = new System.Windows.Forms.Label();
-            this.lblUrl = new System.Windows.Forms.LinkLabel();
+            this.uploadAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -77,7 +82,8 @@
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.testsToolStripMenuItem});
+            this.testsToolStripMenuItem,
+            this.startSererToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(551, 28);
@@ -135,10 +141,18 @@
             // 
             // testsToolStripMenuItem
             // 
+            this.testsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.uploadAllToolStripMenuItem});
             this.testsToolStripMenuItem.Name = "testsToolStripMenuItem";
-            this.testsToolStripMenuItem.Size = new System.Drawing.Size(112, 24);
-            this.testsToolStripMenuItem.Text = "Upload to DB";
-            this.testsToolStripMenuItem.Click += new System.EventHandler(this.testsToolStripMenuItem_Click);
+            this.testsToolStripMenuItem.Size = new System.Drawing.Size(84, 24);
+            this.testsToolStripMenuItem.Text = "Database";
+            // 
+            // startSererToolStripMenuItem
+            // 
+            this.startSererToolStripMenuItem.Name = "startSererToolStripMenuItem";
+            this.startSererToolStripMenuItem.Size = new System.Drawing.Size(97, 24);
+            this.startSererToolStripMenuItem.Text = "Start Server";
+            this.startSererToolStripMenuItem.Click += new System.EventHandler(this.startSererToolStripMenuItem_Click);
             // 
             // txtUrl
             // 
@@ -199,6 +213,34 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Information";
             // 
+            // lblUrl
+            // 
+            this.lblUrl.AutoSize = true;
+            this.lblUrl.Location = new System.Drawing.Point(153, 63);
+            this.lblUrl.Name = "lblUrl";
+            this.lblUrl.Size = new System.Drawing.Size(148, 17);
+            this.lblUrl.TabIndex = 6;
+            this.lblUrl.TabStop = true;
+            this.lblUrl.Text = "http://www.google.com";
+            // 
+            // lblNoOfKeywords
+            // 
+            this.lblNoOfKeywords.AutoSize = true;
+            this.lblNoOfKeywords.Location = new System.Drawing.Point(153, 46);
+            this.lblNoOfKeywords.Name = "lblNoOfKeywords";
+            this.lblNoOfKeywords.Size = new System.Drawing.Size(16, 17);
+            this.lblNoOfKeywords.TabIndex = 5;
+            this.lblNoOfKeywords.Text = "2";
+            // 
+            // lblInfoTitle
+            // 
+            this.lblInfoTitle.AutoSize = true;
+            this.lblInfoTitle.Location = new System.Drawing.Point(153, 29);
+            this.lblInfoTitle.Name = "lblInfoTitle";
+            this.lblInfoTitle.Size = new System.Drawing.Size(16, 17);
+            this.lblInfoTitle.TabIndex = 4;
+            this.lblInfoTitle.Text = "1";
+            // 
             // label5
             // 
             this.label5.AutoSize = true;
@@ -229,33 +271,12 @@
             this.label2.Text = "Title: ";
             this.label2.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
-            // lblInfoTitle
+            // uploadAllToolStripMenuItem
             // 
-            this.lblInfoTitle.AutoSize = true;
-            this.lblInfoTitle.Location = new System.Drawing.Point(153, 29);
-            this.lblInfoTitle.Name = "lblInfoTitle";
-            this.lblInfoTitle.Size = new System.Drawing.Size(16, 17);
-            this.lblInfoTitle.TabIndex = 4;
-            this.lblInfoTitle.Text = "1";
-            // 
-            // lblNoOfKeywords
-            // 
-            this.lblNoOfKeywords.AutoSize = true;
-            this.lblNoOfKeywords.Location = new System.Drawing.Point(153, 46);
-            this.lblNoOfKeywords.Name = "lblNoOfKeywords";
-            this.lblNoOfKeywords.Size = new System.Drawing.Size(16, 17);
-            this.lblNoOfKeywords.TabIndex = 5;
-            this.lblNoOfKeywords.Text = "2";
-            // 
-            // lblUrl
-            // 
-            this.lblUrl.AutoSize = true;
-            this.lblUrl.Location = new System.Drawing.Point(153, 63);
-            this.lblUrl.Name = "lblUrl";
-            this.lblUrl.Size = new System.Drawing.Size(148, 17);
-            this.lblUrl.TabIndex = 6;
-            this.lblUrl.TabStop = true;
-            this.lblUrl.Text = "http://www.google.com";
+            this.uploadAllToolStripMenuItem.Name = "uploadAllToolStripMenuItem";
+            this.uploadAllToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.uploadAllToolStripMenuItem.Text = "Upload All";
+            this.uploadAllToolStripMenuItem.Click += new System.EventHandler(this.UploadAllToDB);
             // 
             // IndexerForm
             // 
@@ -272,6 +293,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "IndexerForm";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.IndexerForm_Load);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
@@ -285,28 +307,30 @@
 
         #endregion
 
-        private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem saveFileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem openFileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripMenuItem testsToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem testsToolStripMenuItem;
-        private System.Windows.Forms.TextBox txtUrl;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button btnAddUrl;
-        private System.Windows.Forms.ListBox lstUrs;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.ToolStripStatusLabel lblStatus1;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.LinkLabel lblUrl;
-        private System.Windows.Forms.Label lblNoOfKeywords;
-        private System.Windows.Forms.Label lblInfoTitle;
+        private StatusStrip statusStrip1;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem saveFileToolStripMenuItem;
+        private ToolStripMenuItem openFileToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripMenuItem testsToolStripMenuItem1;
+        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem testsToolStripMenuItem;
+        private TextBox txtUrl;
+        private Label label1;
+        private Button btnAddUrl;
+        private ListBox lstUrs;
+        private GroupBox groupBox1;
+        private ToolStripStatusLabel lblStatus1;
+        private Label label5;
+        private Label label3;
+        private Label label2;
+        private LinkLabel lblUrl;
+        private Label lblNoOfKeywords;
+        private Label lblInfoTitle;
+        private ToolStripMenuItem startSererToolStripMenuItem;
+        private ToolStripMenuItem uploadAllToolStripMenuItem;
     }
 }
 

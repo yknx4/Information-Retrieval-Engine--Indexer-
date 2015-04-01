@@ -1,11 +1,14 @@
-﻿namespace Indexer
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace Indexer
 {
     partial class Tests
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -37,6 +40,8 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.btnFull = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.txtTerms = new System.Windows.Forms.TextBox();
+            this.btnAddTerms = new System.Windows.Forms.Button();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -50,7 +55,7 @@
             this.txtContent.Multiline = true;
             this.txtContent.Name = "txtContent";
             this.txtContent.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtContent.Size = new System.Drawing.Size(620, 467);
+            this.txtContent.Size = new System.Drawing.Size(620, 460);
             this.txtContent.TabIndex = 0;
             // 
             // txtURL
@@ -129,11 +134,31 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // txtTerms
+            // 
+            this.txtTerms.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.txtTerms.Location = new System.Drawing.Point(12, 506);
+            this.txtTerms.Name = "txtTerms";
+            this.txtTerms.Size = new System.Drawing.Size(499, 22);
+            this.txtTerms.TabIndex = 7;
+            // 
+            // btnAddTerms
+            // 
+            this.btnAddTerms.Location = new System.Drawing.Point(517, 505);
+            this.btnAddTerms.Name = "btnAddTerms";
+            this.btnAddTerms.Size = new System.Drawing.Size(115, 23);
+            this.btnAddTerms.TabIndex = 8;
+            this.btnAddTerms.Text = "Add Terms";
+            this.btnAddTerms.UseVisualStyleBackColor = true;
+            this.btnAddTerms.Click += new System.EventHandler(this.btnAddTerms_Click);
+            // 
             // Tests
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(725, 556);
+            this.Controls.Add(this.btnAddTerms);
+            this.Controls.Add(this.txtTerms);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.btnFull);
             this.Controls.Add(this.statusStrip);
@@ -152,14 +177,16 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox txtContent;
-        private System.Windows.Forms.TextBox txtURL;
-        private System.Windows.Forms.Button btnCargar;
-        private System.Windows.Forms.Button btnStrip;
-        private System.Windows.Forms.StatusStrip statusStrip;
-        private System.Windows.Forms.ToolStripStatusLabel lblStatus1;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
-        private System.Windows.Forms.Button btnFull;
-        private System.Windows.Forms.Button button1;
+        private TextBox txtContent;
+        private TextBox txtURL;
+        private Button btnCargar;
+        private Button btnStrip;
+        private StatusStrip statusStrip;
+        private ToolStripStatusLabel lblStatus1;
+        private ToolStripStatusLabel toolStripStatusLabel1;
+        private Button btnFull;
+        private Button button1;
+        private TextBox txtTerms;
+        private Button btnAddTerms;
     }
 }

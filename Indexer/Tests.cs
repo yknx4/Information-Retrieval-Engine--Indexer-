@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Engine;
-using Engine.Database;
+using Engine.Database.Interfaces;
+using Engine.Database.Repositories;
 using Engine.Model;
 using Engine.Tools;
 
@@ -61,6 +54,12 @@ namespace Indexer
             if (_logicalView == null || !_logicalView.IsInitialized) return;
             IDocumentRepository repo = new MySqlDocumentRepository();
             repo.Insert(_logicalView);
+        }
+
+        private void btnAddTerms_Click(object sender, EventArgs e)
+        {
+            var repo = new MySqlTermRepository();
+            repo.InsertBatch(txtTerms.Text.Split(' '));
         }
     }
 }
