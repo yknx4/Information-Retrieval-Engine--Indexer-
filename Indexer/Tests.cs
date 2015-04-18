@@ -42,11 +42,11 @@ namespace Indexer
         private LogicalView _logicalView;
         private void btnCargar_Click(object sender, EventArgs e)
         {
+            var snd = sender as Button;
+            if (snd != null) snd.Enabled = false;
             var contentuUri = new Uri(txtURL.Text);
             _logicalView = new LogicalView(contentuUri);
-            _logicalView.Initialize();
-            txtContent.Text = _logicalView.Data;
-            toolStripStatusLabel1.Text = "Extraidos " + txtContent.Text.Length + " caracteres de: " + _logicalView.Title + ".";
+            bgwLoadData.RunWorkerAsync();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -60,6 +60,19 @@ namespace Indexer
         {
             var repo = new MySqlTermRepository();
             repo.InsertBatch(txtTerms.Text.Split(' '));
+        }
+
+        private void Working(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            _logicalView.Initialize();
+            
+        }
+
+        private void EndWork(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            txtContent.Text = _logicalView.Data;
+            toolStripStatusLabel1.Text = "Extraidos " + txtContent.Text.Length + " caracteres de: " + _logicalView.Title + ".";
+            btnCargar.Enabled = true;
         }
     }
 }

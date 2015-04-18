@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -99,6 +100,7 @@ namespace Engine.Model
             }
 
             IsInitialized = true;
+            EngineLogger.Log(this, Title+" initialized.");
         }
 
         private static IEnumerable<string> DivideStringInGroups(string source, int groupSize)

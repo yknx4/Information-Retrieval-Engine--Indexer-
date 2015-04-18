@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Windows.Forms;
 using Engine.Database.Interfaces;
 using Engine.Database.Repositories;
@@ -15,11 +17,11 @@ namespace Indexer
             InitializeComponent();
         }
 
-        private BindingList<LogicalView> _documentList = new BindingList<LogicalView>(); 
+        private BindingList<LogicalView> _documentList = new BindingList<LogicalView>();
 
         private void btnTests_Click(object sender, EventArgs e)
         {
-           
+
         }
 
         private void testsToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -35,7 +37,8 @@ namespace Indexer
         IDocumentRepository _repo = new MySqlDocumentRepository();
         private void UploadAllToDB(object sender, EventArgs e)
         {
-            _repo.InsertBatch(_documentList);
+            bgwInsertAll.RunWorkerAsync(_documentList);
+
         }
 
         private void btnAddUrl_Click(object sender, EventArgs e)
@@ -55,26 +58,31 @@ namespace Indexer
 
         private void AlSeleccionar(object sender, EventArgs e)
         {
+            if (bgwLoadData.IsBusy) bgwLoadData.CancelAsync();
+            while (bgwLoadData.IsBusy) { }
             var selectedItem = lstUrs.SelectedItem as LogicalView;
             if (selectedItem != null && !selectedItem.IsInitialized)
             {
-                selectedItem.Initialize();
 
+                //bgwLoadData.RunWorkerAsync(selectedItem);
             }
-            LoadInForm(selectedItem);
+            else
+            {
+                LoadInForm(selectedItem);
+            }
+
         }
 
         private void LoadInForm(LogicalView selectedItem)
         {
-            if (selectedItem != null)
-            {
-                lblStatus1.Text=selectedItem.Title+" cargado.";
-                lblInfoTitle.Text = selectedItem.Title;
-                lblNoOfKeywords.Text = selectedItem.NumberOfKeywords.ToString();
-                lblUrl.Text = selectedItem.SourceUri.ToString();
-                
-            }
+            if (selectedItem == null) return;
+            lblStatus1.Text = selectedItem.Title + " cargado.";
+            lblInfoTitle.Text = selectedItem.Title;
+            lblNoOfKeywords.Text = selectedItem.NumberOfKeywords.ToString();
+            lblUrl.Text = selectedItem.SourceUri.ToString();
         }
+
+
 
         private void startSererToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -85,5 +93,64 @@ namespace Indexer
         {
             lstUrs.DataSource = _documentList;
         }
+
+        private void DoWork(object sender, DoWorkEventArgs e)
+        {
+
+            ((LogicalView)e.Argument).Initialize();
+        }
+
+        private void AtEndWorker(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+
+                return;
+            }
+            LoadInForm(e.Result as LogicalView);
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            _repo.InsertBatch(e.Argument as IEnumerable<LogicalView>);
+        }
+
+        private void AlTerminarInsertar(object sender, RunWorkerCompletedEventArgs e)
+        {
+            lblStatus1.Text = _documentList.Count + " documents queued.";
+        }
+
+        private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog opfDialog = new OpenFileDialog();
+            opfDialog.CheckFileExists = true;
+            opfDialog.CheckPathExists = true;
+            opfDialog.Multiselect = false;
+            switch (opfDialog.ShowDialog())
+            {
+                case DialogResult.OK:
+
+                    var urls = File.ReadAllLines(opfDialog.FileName);
+                    foreach (var url in urls)
+                    {
+                        try
+                        {
+                            var contentUri = new Uri(url);
+                            var lview = new LogicalView(contentUri);
+                            _documentList.Add(lview);
+                        }
+                        catch (UriFormatException er)
+                        {
+                            lblStatus1.Text = Resources.The_input_URL_is_invalid;
+                        }
+                    }
+
+                    break;
+
+            }
+
+        }
+
+
     }
 }

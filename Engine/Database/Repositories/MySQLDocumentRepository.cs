@@ -1,16 +1,112 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
-using System.Threading;
+using System.Timers;
 using Engine.Database.Interfaces;
 using Engine.Model;
+using Engine.Tools;
 using MySql.Data.MySqlClient;
 
 namespace Engine.Database.Repositories
 {
     public class MySqlDocumentRepository : IDocumentRepository
     {
+        private const string ClassName = "MySqlDocumentRepository";
+        private static readonly Timer CommitTimer;
+        private static readonly ConcurrentQueue<Tuple<string, LogicalView>> QueryQueue;
+
+
+        static MySqlDocumentRepository()
+        {
+            var declaringType = MethodBase.GetCurrentMethod().DeclaringType;
+            if (declaringType != null)
+                EngineLogger.Log(declaringType.Name,"Logger initalized");
+            QueryQueue = new ConcurrentQueue<Tuple<string, LogicalView>>();
+            CommitTimer = new Timer { SynchronizingObject = null, Interval = Constants.DocumentCommitInterval };
+            CommitTimer.Elapsed += CommitQuery;
+            CommitTimer.Enabled = true;
+        }
+
+        private static void CommitQuery(object source, ElapsedEventArgs e)
+        {
+
+            if (QueryQueue.IsEmpty)
+            {
+                MySqlRepositoriesSync.IsDocumentRepositoryWorking = false;
+                return;
+            }
+            else
+            {
+                EngineLogger.Log(ClassName, "Committing.");
+            }
+            MySqlRepositoriesSync.IsDocumentRepositoryWorking = true;
+            var queryBuilder = new StringBuilder();
+            var queuedViews = new List<LogicalView>();
+            var queueTerms = new ConcurrentQueue<Tuple<Uri, Dictionary<string, int>>>();
+            Tuple<string, LogicalView> queueItem;
+            var queueCount = 0;
+            while (QueryQueue.TryDequeue(out queueItem) && queueCount < Constants.DocumentQueriesPerTransaction)
+            {
+                if (queueItem == null)
+                {
+                    EngineLogger.Log(ClassName, "WTF!?");
+                    continue;
+                }
+                var lv = queueItem.Item2;
+                if(!lv.IsInitialized) lv.Initialize();
+                queueTerms.Enqueue(new Tuple<Uri, Dictionary<string, int>>(lv.SourceUri, lv.IndexTermsCount));               
+                queryBuilder.Append(GenericTools.NumberStatementParameter(queueItem.Item1, new []{Constants.Parameters.Url,Constants.Parameters.Title}, queueCount));
+                queuedViews.Add(queueItem.Item2);
+                queueCount++;
+            }
+            var conn = MySqlDbConnection.GetConnection();
+            //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
+            using (var cmd = conn.CreateCommand())
+            {
+                EngineLogger.Log(ClassName, "Preparing.");
+                var finalQuery = queryBuilder.ToString();
+                EngineLogger.Log(ClassName, "Query to process: " + finalQuery);
+                //conn.Open();
+                cmd.CommandText = finalQuery;
+                cmd.Prepare();
+                for (var i = 0; i < queueCount; i++)
+                {
+                    cmd.Parameters.AddWithValue(Constants.Parameters.Title + i, queuedViews[i].Title);
+                    cmd.Parameters.AddWithValue(Constants.Parameters.Url + i, queuedViews[i].SourceUri);
+                }
+                cmd.CommandTimeout = Constants.MaxTimeout;
+                try
+                {
+
+                    EngineLogger.Log(ClassName, "Inserting.");
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    EngineLogger.Log(ClassName, "Exception on query! Check it! " + ex);
+                }
+            }
+            MySqlDbConnection.ReturnConnection(conn);
+            ITermRepository termRepository = new MySqlTermRepository();
+            foreach (var queueTerm in queueTerms)
+            {
+                termRepository.InsertBatch(queueTerm.Item1,queueTerm.Item2);
+            }
+            
+            if (QueryQueue.IsEmpty)
+            {
+                EngineLogger.Log(ClassName, "Work done");
+                MySqlRepositoriesSync.IsDocumentRepositoryWorking = false;
+            }
+            else
+            {
+                EngineLogger.Log(ClassName, "Elements left: " + QueryQueue.Count);
+            }
+        }
+
         public LogicalView Get(int id)
         {
             throw new NotImplementedException();
@@ -29,12 +125,13 @@ namespace Engine.Database.Repositories
         public static int GetId(Uri url)
         {
             var result = -1;
-            using (var conn = new MySqlConnection(Constants.ConnectionString))
+            //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
+            var conn = MySqlDbConnection.GetConnection();
             using (var cmd = conn.CreateCommand())
             {
                 try
                 {
-                    conn.Open();
+                    //conn.Open();
                     cmd.CommandText = Constants.Queries.SelectDocumentIdFromUrlQuery;
                     cmd.Prepare();
                     cmd.Parameters.AddWithValue(Constants.Parameters.Url, url.ToString());
@@ -49,69 +146,29 @@ namespace Engine.Database.Repositories
                     // don't hide it
                 }          
             }
+            MySqlDbConnection.ReturnConnection(conn);
             return result;
         }
 
         public void Insert(LogicalView input)
         {
-            if (!input.IsInitialized) input.Initialize();
-            using (var conn = new MySqlConnection(Constants.ConnectionString))
-            using (var cmd = conn.CreateCommand())
-            {
-                conn.Open();
-                cmd.CommandText = Constants.Queries.InsertDocumentQuery;
-                cmd.Prepare();
-                cmd.Parameters.AddWithValue(Constants.Parameters.Title, input.Title);
-                cmd.Parameters.AddWithValue(Constants.Parameters.Url, input.SourceUri);
-                cmd.ExecuteNonQuery();
-            }
-            ITermRepository termRepository = new MySqlTermRepository();
-            var keys = input.IndexTermsCount.Keys.ToArray();
-            termRepository.InsertBatch(input.SourceUri,input.IndexTermsCount);
-            Thread.Sleep(500);    
+
+            QueryQueue.Enqueue(new Tuple<string, LogicalView>(Constants.Queries.InsertDocumentQuery,input));
+              
+            
+            //Thread.Sleep(500);    
             //IWeightRepository weightRepository = new MySqlWeightRepository();
             //weightRepository.InsertBatch(input.SourceUri,input.IndexTermsCount);
         }
 
         public void InsertBatch(IEnumerable<LogicalView> input)
         {
-            var queryBuilder = new StringBuilder();
-            var rowCount = 0;
-            var logicalViews = input as LogicalView[] ?? input.ToArray();
-            foreach (var logicalView in logicalViews)
+            var termValues = input as LogicalView[] ?? input.ToArray();
+            EngineLogger.Log(this, "Added " + termValues.Length + " elements to queue.");
+            foreach (var termValue in termValues)
             {
-                if (!logicalView.IsInitialized) logicalView.Initialize();
-                var localQuery = Constants.Queries.InsertDocumentQuery;
-                localQuery = localQuery.Replace(Constants.Parameters.Title,
-                    Constants.Parameters.Title + rowCount.ToString());
-                localQuery = localQuery.Replace(Constants.Parameters.Url,
-                    Constants.Parameters.Url + rowCount.ToString());
-                rowCount++;
-                queryBuilder.Append(localQuery);
-            }
-            using (var conn = new MySqlConnection(Constants.ConnectionString))
-            using (var cmd = conn.CreateCommand())
-            {
-                conn.Open();
-                cmd.CommandText = queryBuilder.ToString();
-                cmd.Prepare();
-                rowCount = 0;
-                foreach (var logicalView in logicalViews)
-                {
-                    cmd.Parameters.AddWithValue(Constants.Parameters.Title + rowCount.ToString(), logicalView.Title);
-                    cmd.Parameters.AddWithValue(Constants.Parameters.Url + rowCount.ToString(), logicalView.SourceUri);
-                    rowCount++;
-                }
-                cmd.ExecuteNonQuery();
-                foreach (var logicalView in logicalViews)
-                {
-                    ITermRepository termRepository = new MySqlTermRepository();
-                    var keys = logicalView.IndexTermsCount.Keys.ToArray();
-                    termRepository.InsertBatch(keys);
-                    IWeightRepository weightRepository = new MySqlWeightRepository();
-                    weightRepository.InsertBatch(logicalView.SourceUri, logicalView.IndexTermsCount);
-                }
-            }
+                Insert(termValue);
+            }           
 
         }
     }

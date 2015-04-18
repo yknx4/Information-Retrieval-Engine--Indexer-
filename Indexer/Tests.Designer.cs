@@ -42,6 +42,7 @@ namespace Indexer
             this.button1 = new System.Windows.Forms.Button();
             this.txtTerms = new System.Windows.Forms.TextBox();
             this.btnAddTerms = new System.Windows.Forms.Button();
+            this.bgwLoadData = new System.ComponentModel.BackgroundWorker();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -152,6 +153,12 @@ namespace Indexer
             this.btnAddTerms.UseVisualStyleBackColor = true;
             this.btnAddTerms.Click += new System.EventHandler(this.btnAddTerms_Click);
             // 
+            // bgwLoadData
+            // 
+            this.bgwLoadData.WorkerReportsProgress = true;
+            this.bgwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.Working);
+            this.bgwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.EndWork);
+            // 
             // Tests
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -188,5 +195,6 @@ namespace Indexer
         private Button button1;
         private TextBox txtTerms;
         private Button btnAddTerms;
+        private BackgroundWorker bgwLoadData;
     }
 }

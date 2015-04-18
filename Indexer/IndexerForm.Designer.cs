@@ -42,6 +42,7 @@ namespace Indexer
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.uploadAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startSererToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtUrl = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -54,7 +55,8 @@ namespace Indexer
             this.label5 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.uploadAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.bgwLoadData = new System.ComponentModel.BackgroundWorker();
+            this.bgwInsertAll = new System.ComponentModel.BackgroundWorker();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -106,36 +108,37 @@ namespace Indexer
             // saveFileToolStripMenuItem
             // 
             this.saveFileToolStripMenuItem.Name = "saveFileToolStripMenuItem";
-            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(147, 26);
+            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.saveFileToolStripMenuItem.Text = "Save File";
             // 
             // openFileToolStripMenuItem
             // 
             this.openFileToolStripMenuItem.Name = "openFileToolStripMenuItem";
-            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(147, 26);
+            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.openFileToolStripMenuItem.Text = "Open File";
+            this.openFileToolStripMenuItem.Click += new System.EventHandler(this.openFileToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(144, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(178, 6);
             // 
             // testsToolStripMenuItem1
             // 
             this.testsToolStripMenuItem1.Name = "testsToolStripMenuItem1";
-            this.testsToolStripMenuItem1.Size = new System.Drawing.Size(147, 26);
+            this.testsToolStripMenuItem1.Size = new System.Drawing.Size(181, 26);
             this.testsToolStripMenuItem1.Text = "Tests";
             this.testsToolStripMenuItem1.Click += new System.EventHandler(this.testsToolStripMenuItem1_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(144, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(178, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(147, 26);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -146,6 +149,13 @@ namespace Indexer
             this.testsToolStripMenuItem.Name = "testsToolStripMenuItem";
             this.testsToolStripMenuItem.Size = new System.Drawing.Size(84, 24);
             this.testsToolStripMenuItem.Text = "Database";
+            // 
+            // uploadAllToolStripMenuItem
+            // 
+            this.uploadAllToolStripMenuItem.Name = "uploadAllToolStripMenuItem";
+            this.uploadAllToolStripMenuItem.Size = new System.Drawing.Size(155, 26);
+            this.uploadAllToolStripMenuItem.Text = "Upload All";
+            this.uploadAllToolStripMenuItem.Click += new System.EventHandler(this.UploadAllToDB);
             // 
             // startSererToolStripMenuItem
             // 
@@ -271,12 +281,16 @@ namespace Indexer
             this.label2.Text = "Title: ";
             this.label2.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
-            // uploadAllToolStripMenuItem
+            // bgwLoadData
             // 
-            this.uploadAllToolStripMenuItem.Name = "uploadAllToolStripMenuItem";
-            this.uploadAllToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
-            this.uploadAllToolStripMenuItem.Text = "Upload All";
-            this.uploadAllToolStripMenuItem.Click += new System.EventHandler(this.UploadAllToDB);
+            this.bgwLoadData.WorkerSupportsCancellation = true;
+            this.bgwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.DoWork);
+            this.bgwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.AtEndWorker);
+            // 
+            // bgwInsertAll
+            // 
+            this.bgwInsertAll.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.bgwInsertAll.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.AlTerminarInsertar);
             // 
             // IndexerForm
             // 
@@ -331,6 +345,8 @@ namespace Indexer
         private Label lblInfoTitle;
         private ToolStripMenuItem startSererToolStripMenuItem;
         private ToolStripMenuItem uploadAllToolStripMenuItem;
+        private BackgroundWorker bgwLoadData;
+        private BackgroundWorker bgwInsertAll;
     }
 }
 

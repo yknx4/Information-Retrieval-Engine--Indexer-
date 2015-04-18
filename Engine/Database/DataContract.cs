@@ -5,26 +5,26 @@
         
         static public class DocumentEntry
         {
-            public static string TableName = "documents";
-            public static string Id = "id";
-            public static string Title = "title";
-            public static string Url = "url";
-            public static string UrlHash = "url_hash";
+            public const string TableName = "documents";
+            public const string Id = "id";
+            public const string Title = "title";
+            public const string Url = "url";
+            public const string UrlHash = "url_hash";
         }
-        static public class TermEntry
+         static public class TermEntry
         {
-            public static string TableName = "indexes";
-            public static string Id = "id";
-            public static string Value = "name";
+            public const string TableName = "indexes";
+            public const string Id = "id";
+            public const string Value = "name";
         }
 
-        static public class WeightEntry
+         static public class WeightEntry
         {
-            public static string TableName = "weights";
-            public static string Id = "id";
-            public static string TermId = "term_id";
-            public static string DocumentId = "document_id";
-            public static string Count = "count";
+            public const string TableName = "weights";
+            public const string Id = "id";
+            public const string TermId = "term_id";
+            public const string DocumentId = "document_id";
+            public const string Count = "count";
 
         }
     }

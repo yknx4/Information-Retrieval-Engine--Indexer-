@@ -17,7 +17,7 @@ namespace Engine.Database.Repositories
         private const string ClassName = "MySqlTermRepository";
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private static readonly Timer CommitTimer;
-        private static readonly ConcurrentQueue<String> QueryQueue;
+        private static readonly ConcurrentQueue<Tuple<string, string>> QueryQueue;
 
 
         static MySqlTermRepository()
@@ -25,7 +25,7 @@ namespace Engine.Database.Repositories
             var declaringType = MethodBase.GetCurrentMethod().DeclaringType;
             if (declaringType != null)
                 EngineLogger.Log(declaringType.Name,"Logger initalized");
-            QueryQueue = new ConcurrentQueue<string>();
+            QueryQueue = new ConcurrentQueue<Tuple<string, string>>();
             CommitTimer = new Timer { SynchronizingObject = null, Interval = Constants.CommitInterval };
             CommitTimer.Elapsed += CommitQuery;
             CommitTimer.Enabled = true;
@@ -43,29 +43,35 @@ namespace Engine.Database.Repositories
             {
                 EngineLogger.Log(ClassName, "Committing.");
             }
-            if (MySqlRepositoriesSync.IsDocumentRepositoryWorking)
-            {
-                EngineLogger.Log(ClassName,"Document repository is working. Delaying");
-                return;
-            }
             MySqlRepositoriesSync.IsTermRepositoryWorking = true;
             var queryBuilder = new StringBuilder();
-            string queueItem;
+            var queuedTerms = new List<String>();
+            Tuple<string, string> queueItem;
             var queueCount = 0;
-            while (QueryQueue.TryDequeue(out queueItem)||queueCount == Constants.QueriesPerTransaction)
+            while (QueryQueue.TryDequeue(out queueItem)&&queueCount < Constants.QueriesPerTransaction)
             {
-                queryBuilder.Append(queueItem);
+                if (queueItem == null)
+                {
+                    EngineLogger.Log(ClassName, "WTF!?");
+                    continue;
+                }
+                queryBuilder.Append(GenericTools.NumberStatementParameter(queueItem.Item1,Constants.Parameters.Value,queueCount));
+                queuedTerms.Add(queueItem.Item2);
                 queueCount++;
             }
-            using (var conn = new MySqlConnection(Constants.ConnectionString))
+            //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
+            var conn = MySqlDbConnection.GetConnection();
             using (var cmd = conn.CreateCommand())
             {
                 var finalQuery = queryBuilder.ToString();
                 EngineLogger.Log(ClassName, "Query to process: "+finalQuery);
-                conn.Open();
+                //conn.Open();
                 cmd.CommandText = finalQuery;
                 cmd.Prepare();
-                
+                for (var i = 0; i < queueCount; i++)
+                {
+                    cmd.Parameters.AddWithValue(Constants.Parameters.Value + i, queuedTerms[i]);
+                }
                 cmd.CommandTimeout = Constants.MaxTimeout;
                 try
                 {
@@ -73,9 +79,10 @@ namespace Engine.Database.Repositories
                 }
                 catch (Exception ex)
                 {
-                    EngineLogger.Log(ClassName,"Exception on query! Check it! "+ex.ToString());
+                    EngineLogger.Log(ClassName,"Exception on query! Check it! "+ex);
                 }
             }
+            MySqlDbConnection.ReturnConnection(conn);
             if (QueryQueue.IsEmpty)
             {
                 EngineLogger.Log(ClassName, "Work done");
@@ -101,10 +108,11 @@ namespace Engine.Database.Repositories
         public IEnumerable<Term> GetAll()
         {
             var results = new List<Term>();
-            using (var conn = new MySqlConnection(Constants.ConnectionString))
+            //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
+            var conn = MySqlDbConnection.GetConnection();
             using (var cmd = conn.CreateCommand())
             {
-                conn.Open();
+                //conn.Open();
                 cmd.CommandText = Constants.Queries.SelectAllTermsQuery;
                 cmd.CommandTimeout = Constants.MaxTimeout;
                 var reader = cmd.ExecuteReader();
@@ -119,14 +127,16 @@ namespace Engine.Database.Repositories
                     results.Add(tmpTerm);
                 }
             }
+            MySqlDbConnection.ReturnConnection(conn);
             return results;
         }
 
         public void Insert(string input)
         {
             var localQuery = Constants.Queries.InsertTermQuery;
-            localQuery = GenericTools.FillParameter(localQuery, Constants.Parameters.Value, input.Replace("'", "''"));
-            QueryQueue.Enqueue(localQuery);
+            //localQuery = GenericTools.FillParameter(localQuery, Constants.Parameters.Value, input.Replace("'", "''"));
+            QueryQueue.Enqueue(new Tuple<string, string>(localQuery,input));
+            
         }
 
         public void InsertBatch(IEnumerable<string> input)
@@ -158,8 +168,9 @@ namespace Engine.Database.Repositories
         public void Insert(int documenId, KeyValuePair<string,int> value)
         {
             var localQuery = Constants.Queries.InsertTermQuery;
-            localQuery = GenericTools.FillParameter(localQuery, Constants.Parameters.Value, value.Key.Replace("'", "''"));
-            QueryQueue.Enqueue(localQuery);
+            //USED BEFORE, LEFT IN CASE OF DEBUG
+            //localQuery = GenericTools.FillParameter(localQuery, Constants.Parameters.Value, value.Key.Replace("'", "''"));
+            QueryQueue.Enqueue(new Tuple<string,string>(localQuery,value.Key));
             _weightRepository.Insert(documenId,value);
         }
     }
