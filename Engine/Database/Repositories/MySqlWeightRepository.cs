@@ -15,76 +15,7 @@ namespace Engine.Database.Repositories
     public class MySqlWeightRepository : IWeightRepository
     {
 
-        //TODO: Move retry to Async task, never get id on main thread.
-        private static readonly Dictionary<String, int> TermsIdDictionary = new Dictionary<string, int>();
-
-        private static int GetTermId(string value)
-        {
-            var id=-1;
-            var orval = value;
-            value = value.ToLower();
-            value = value.ToLowerInvariant();
-            value = StringTools.RemoveDiacritics(value);
-            var roundCount = 0;
-            var found = false;
-            while (roundCount<Constants.TermIdMaximumTries && !found)
-            {
-                roundCount++;
-                if (!TermsIdDictionary.TryGetValue(value, out id))
-                {
-                    //EngineLogger.Log(ClassName, "Couldn't find id for " + value + " in cache. Trying on DB.");
-                    id = -1;
-                }
-                else
-                {
-                    found = true;
-                }
-                if (id < 0)
-                {
-                    id = GetTermId(orval, true);
-                }
-                if (id > 0)
-                {
-                    found = true;
-                    if(!TermsIdDictionary.ContainsKey(value))TermsIdDictionary.Add(value,id);
-                    continue;
-                }
-                
-                
-            }
-            //if (id == -1) EngineLogger.Log(ClassName, "Couldn't find id for " + value + " something is wrong.");
-            return id;
-        }
-        public static int GetTermId(string value, bool lol)
-        {
-            var result = -1;
-            //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
-            var conn = MySqlDbConnection.GetConnection();
-            using (var cmd = conn.CreateCommand())
-            {
-                try
-                {
-                    //conn.Open();
-                    cmd.CommandText = Constants.Queries.SelectTermIdFromUrlQuery;
-                    cmd.Prepare();
-                    cmd.Parameters.AddWithValue(Constants.Parameters.Value, value);
-                    result = int.Parse(cmd.ExecuteScalar().ToString());
-                }
-                catch (MySqlException ex)
-                {
-                    if (ex.ToString() != string.Empty) result = -1;
-                    // do somthing with the exception
-                    // don't hide it
-                }
-                catch (NullReferenceException)
-                {
-                    EngineLogger.Log(ClassName,"Algo empezo a tronar.");
-                    Thread.Sleep(10000);
-                }
-            }
-            MySqlDbConnection.ReturnConnection(conn);
-            return result;
-        }
+        
 
         static MySqlWeightRepository()
         {
@@ -100,7 +31,7 @@ namespace Engine.Database.Repositories
             RetryTimer.Elapsed += RetryQuery;
             
         }
-
+        private static  int _lastTermCount = -1;
         private static void RetryQuery(object sender, ElapsedEventArgs e)
         {
             
@@ -110,7 +41,12 @@ namespace Engine.Database.Repositories
                 RetryTimer.Stop();
                 return;
             }
-            UpdateTerms();
+            if (_lastTermCount != MySqlTermRepository.TermCount)
+            {
+                MySqlTermRepository.UpdateTerms();
+                _lastTermCount = MySqlTermRepository.TermCount;
+            }
+            
             var queueCount = 0;
             while (!RetryQueue.IsEmpty && queueCount < Constants.QueriesPerTransaction)
             {
@@ -127,29 +63,7 @@ namespace Engine.Database.Repositories
 
 
 
-        private static volatile bool _updating;
-
-        private static void UpdateTerms()
-        {
-            if (_updating)
-            {
-                while (_updating)
-                {
-                    
-                }
-                return;
-            }
-            _updating = true;
-            EngineLogger.Log(ClassName, "Updating Terms");
-            var terms = new MySqlTermRepository().GetAll();
-            foreach (var term in terms)
-            {
-                if (TermsIdDictionary.ContainsKey(term.Value)) continue;
-                TermsIdDictionary.Add(term.Value, term.Id);
-            }
-            _updating = false;
-        }
-
+       
         private const string ClassName = "MySqlWeightRepository";
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private static readonly Timer CommitTimer;
@@ -179,7 +93,7 @@ namespace Engine.Database.Repositories
                     EngineLogger.Log(ClassName,"WTF!?");
                     continue;
                 }
-                var localQuery = GenericTools.FillParameter(queueItem.Item1, Constants.Parameters.TermId, GetTermId(queueItem.Item2));
+                var localQuery = GenericTools.FillParameter(queueItem.Item1, Constants.Parameters.TermId, MySqlTermRepository.GetTermId(queueItem.Item2));
                 queryBuilder.Append(localQuery);
                 queueCount++;
             }
@@ -223,7 +137,7 @@ namespace Engine.Database.Repositories
 
         public void Insert(int documentId, KeyValuePair<string, int> value)
         {
-            var termId = GetTermId(value.Key);
+            var termId = MySqlTermRepository.GetTermId(value.Key);
             if (termId <= 0)
             {
                 Retry(documentId,value);

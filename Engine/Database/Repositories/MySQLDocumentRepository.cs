@@ -62,7 +62,7 @@ namespace Engine.Database.Repositories
                 queuedViews.Add(queueItem.Item2);
                 queueCount++;
             }
-            var conn = MySqlDbConnection.GetConnection();
+            var conn = MySqlDbConnection.GetConnectionWithPriority();
             //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
             using (var cmd = conn.CreateCommand())
             {

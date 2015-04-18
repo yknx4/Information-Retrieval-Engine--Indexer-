@@ -30,11 +30,11 @@ namespace Engine.Database
 
         public const double CommitInterval = 10000;
         public const double DocumentCommitInterval = 5000;
-        public const double RetryInterval = 5000;
-        public const int QueriesPerTransaction = 1500;
-        public const int DocumentQueriesPerTransaction = 4;
+        public const double RetryInterval = 15000;
+        public const int QueriesPerTransaction = 400;
+        public const int DocumentQueriesPerTransaction = 2;
         public const int MaxTimeout = 2147483;
-        public const int MaxConnections = 40;
+        public const int MaxConnections = 50;
 
 
         public abstract class Queries

@@ -31,7 +31,23 @@ namespace Engine.Database
             {
                 EngineLogger.Log(ClassName, "Thanks for waiting.");
             }
+
+            MySqlConnection connection = GetConnectionWithPriority();
             
+            if (_lastConnection!= _currentConnection)
+            {
+                //EngineLogger.Log(ClassName, "Serving connection number: "+_currentConnection);
+                _lastConnection = _currentConnection;
+            }
+            
+
+
+            
+            return connection;
+        }
+
+        public static MySqlConnection GetConnectionWithPriority()
+        {
             MySqlConnection connection;
             if (MySqlConnections.TryDequeue(out connection))
             {
@@ -41,18 +57,8 @@ namespace Engine.Database
             {
                 connection = new MySqlConnection(Constants.ConnectionString);
             }
+            if (connection.State == ConnectionState.Closed) connection.Open();
             _currentConnection++;
-
-            
-            if (_lastConnection!= _currentConnection)
-            {
-                EngineLogger.Log(ClassName, "Serving connection number: "+_currentConnection);
-                _lastConnection = _currentConnection;
-            }
-            
-
-
-            if(connection.State == ConnectionState.Closed) connection.Open();
             return connection;
         }
 
