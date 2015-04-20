@@ -61,25 +61,45 @@ namespace Indexer
             if (bgwLoadData.IsBusy) bgwLoadData.CancelAsync();
             while (bgwLoadData.IsBusy) { }
             var selectedItem = lstUrs.SelectedItem as LogicalView;
-            if (selectedItem != null && !selectedItem.IsInitialized)
-            {
-
-                //bgwLoadData.RunWorkerAsync(selectedItem);
-            }
-            else
-            {
+            
                 LoadInForm(selectedItem);
-            }
+           
 
         }
 
         private void LoadInForm(LogicalView selectedItem)
         {
-            if (selectedItem == null) return;
-            lblStatus1.Text = selectedItem.Title + " cargado.";
-            lblInfoTitle.Text = selectedItem.Title;
-            lblNoOfKeywords.Text = selectedItem.NumberOfKeywords.ToString();
-            lblUrl.Text = selectedItem.SourceUri.ToString();
+            toolStripStatusLabel1.Text = LogicalView.InsertedViewsCount + " inserted documents into DB.   "+LogicalView.ProcessingViewsCount+" documents loading. \t";
+            if (selectedItem == null)
+            {
+                lblStatus1.Text = "Item not loaded or loading.";
+                lblInfoTitle.Text = String.Empty;
+                lblNoOfKeywords.Text = String.Empty;
+                lblUrl.Text = String.Empty;
+
+                return;
+            }
+             if (selectedItem.IsInitialized)
+            {
+                lblStatus1.Text = selectedItem.Title + " loaded.";
+                lblInfoTitle.Text = selectedItem.Title;
+                lblNoOfKeywords.Text = selectedItem.NumberOfKeywords.ToString();
+                lblUrl.Text = selectedItem.SourceUri.ToString();
+                chkInit.Checked = selectedItem.IsInitialized;
+                chkIns.Checked = selectedItem.IsInserted;
+                chkPros.Checked = selectedItem.IsProcessing;
+            }
+            else
+            {
+                lblStatus1.Text = selectedItem.Title + " loading.";
+                lblInfoTitle.Text = selectedItem.Title;
+                lblNoOfKeywords.Text = string.Empty;
+                lblUrl.Text = selectedItem.SourceUri.ToString();
+                chkInit.Checked = selectedItem.IsInitialized;
+                chkIns.Checked = selectedItem.IsInserted;
+                chkPros.Checked = selectedItem.IsProcessing;
+            }
+            
         }
 
 

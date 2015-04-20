@@ -4,11 +4,11 @@ namespace TableFileGenerator
 {
     abstract class Constants
     {
-        public static string Server = "localhost";
-        public static string UserName = "yknx4";
-        public static string Password = "konami1994";
-        public static string Database = "information_retrieval";
-        public static uint Port = 3306;
+        public const string Server = "localhost";
+        public const string UserName = "yknx4";
+        public const string Password = "konami1994";
+        public const string Database = "information_retrieval";
+        public const uint Port = 3306;
 
         public static string ConnectionString
         {
@@ -20,8 +20,7 @@ namespace TableFileGenerator
                     UserID = UserName,
                     Password = Password,
                     Database = Database,
-                    Port = Port,
-                    DefaultCommandTimeout = 999
+                    Port = Port
                 };
                 return connString.ToString();
             }

@@ -26,7 +26,7 @@ namespace TableFileGenerator
             using (var conn = new MySqlConnection(Constants.ConnectionString))
             using (var cmd = conn.CreateCommand())
             {
-                //conn.Open();
+                conn.Open();
                 cmd.CommandText = Constants.Queries.SelectTermsFromDocumentQuery(docuementId);
                 cmd.CommandTimeout = Constants.MaxTimeout;
                 var reader = cmd.ExecuteReader();
@@ -66,7 +66,7 @@ namespace TableFileGenerator
             using (var conn = new MySqlConnection(Constants.ConnectionString))
             using (var cmd = conn.CreateCommand())
             {
-                //conn.Open();
+                conn.Open();
                 cmd.CommandText = Constants.Queries.SelectDocumentsQuery(offset, count);
                 cmd.CommandTimeout = Constants.MaxTimeout;
                 var reader = cmd.ExecuteReader();

@@ -57,6 +57,10 @@ namespace Indexer
             this.label2 = new System.Windows.Forms.Label();
             this.bgwLoadData = new System.ComponentModel.BackgroundWorker();
             this.bgwInsertAll = new System.ComponentModel.BackgroundWorker();
+            this.chkInit = new System.Windows.Forms.CheckBox();
+            this.chkIns = new System.Windows.Forms.CheckBox();
+            this.chkPros = new System.Windows.Forms.CheckBox();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -66,10 +70,11 @@ namespace Indexer
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.lblStatus1});
+            this.lblStatus1,
+            this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 416);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(551, 25);
+            this.statusStrip1.Size = new System.Drawing.Size(716, 25);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -88,7 +93,7 @@ namespace Indexer
             this.startSererToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(551, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(716, 28);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -108,37 +113,37 @@ namespace Indexer
             // saveFileToolStripMenuItem
             // 
             this.saveFileToolStripMenuItem.Name = "saveFileToolStripMenuItem";
-            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(147, 26);
             this.saveFileToolStripMenuItem.Text = "Save File";
             // 
             // openFileToolStripMenuItem
             // 
             this.openFileToolStripMenuItem.Name = "openFileToolStripMenuItem";
-            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(147, 26);
             this.openFileToolStripMenuItem.Text = "Open File";
             this.openFileToolStripMenuItem.Click += new System.EventHandler(this.openFileToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(178, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(144, 6);
             // 
             // testsToolStripMenuItem1
             // 
             this.testsToolStripMenuItem1.Name = "testsToolStripMenuItem1";
-            this.testsToolStripMenuItem1.Size = new System.Drawing.Size(181, 26);
+            this.testsToolStripMenuItem1.Size = new System.Drawing.Size(147, 26);
             this.testsToolStripMenuItem1.Text = "Tests";
             this.testsToolStripMenuItem1.Click += new System.EventHandler(this.testsToolStripMenuItem1_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(178, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(144, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(147, 26);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -170,7 +175,7 @@ namespace Indexer
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtUrl.Location = new System.Drawing.Point(58, 31);
             this.txtUrl.Name = "txtUrl";
-            this.txtUrl.Size = new System.Drawing.Size(401, 22);
+            this.txtUrl.Size = new System.Drawing.Size(566, 22);
             this.txtUrl.TabIndex = 3;
             // 
             // label1
@@ -185,7 +190,7 @@ namespace Indexer
             // btnAddUrl
             // 
             this.btnAddUrl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddUrl.Location = new System.Drawing.Point(465, 30);
+            this.btnAddUrl.Location = new System.Drawing.Point(630, 30);
             this.btnAddUrl.Name = "btnAddUrl";
             this.btnAddUrl.Size = new System.Drawing.Size(75, 23);
             this.btnAddUrl.TabIndex = 5;
@@ -201,7 +206,7 @@ namespace Indexer
             this.lstUrs.ItemHeight = 16;
             this.lstUrs.Location = new System.Drawing.Point(15, 75);
             this.lstUrs.Name = "lstUrs";
-            this.lstUrs.Size = new System.Drawing.Size(120, 324);
+            this.lstUrs.Size = new System.Drawing.Size(231, 324);
             this.lstUrs.TabIndex = 6;
             this.lstUrs.SelectedValueChanged += new System.EventHandler(this.AlSeleccionar);
             // 
@@ -210,15 +215,18 @@ namespace Indexer
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.chkPros);
+            this.groupBox1.Controls.Add(this.chkIns);
+            this.groupBox1.Controls.Add(this.chkInit);
             this.groupBox1.Controls.Add(this.lblUrl);
             this.groupBox1.Controls.Add(this.lblNoOfKeywords);
             this.groupBox1.Controls.Add(this.lblInfoTitle);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Location = new System.Drawing.Point(141, 75);
+            this.groupBox1.Location = new System.Drawing.Point(252, 75);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(398, 324);
+            this.groupBox1.Size = new System.Drawing.Size(452, 324);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Information";
@@ -292,11 +300,50 @@ namespace Indexer
             this.bgwInsertAll.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.bgwInsertAll.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.AlTerminarInsertar);
             // 
+            // chkInit
+            // 
+            this.chkInit.AutoCheck = false;
+            this.chkInit.AutoSize = true;
+            this.chkInit.Location = new System.Drawing.Point(49, 83);
+            this.chkInit.Name = "chkInit";
+            this.chkInit.Size = new System.Drawing.Size(88, 21);
+            this.chkInit.TabIndex = 7;
+            this.chkInit.Text = "Initialized";
+            this.chkInit.UseVisualStyleBackColor = true;
+            // 
+            // chkIns
+            // 
+            this.chkIns.AutoCheck = false;
+            this.chkIns.AutoSize = true;
+            this.chkIns.Location = new System.Drawing.Point(153, 83);
+            this.chkIns.Name = "chkIns";
+            this.chkIns.Size = new System.Drawing.Size(81, 21);
+            this.chkIns.TabIndex = 8;
+            this.chkIns.Text = "Inserted";
+            this.chkIns.UseVisualStyleBackColor = true;
+            // 
+            // chkPros
+            // 
+            this.chkPros.AutoCheck = false;
+            this.chkPros.AutoSize = true;
+            this.chkPros.Location = new System.Drawing.Point(240, 83);
+            this.chkPros.Name = "chkPros";
+            this.chkPros.Size = new System.Drawing.Size(100, 21);
+            this.chkPros.TabIndex = 9;
+            this.chkPros.Text = "Processing";
+            this.chkPros.UseVisualStyleBackColor = true;
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(151, 20);
+            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+            // 
             // IndexerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(551, 441);
+            this.ClientSize = new System.Drawing.Size(716, 441);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lstUrs);
             this.Controls.Add(this.btnAddUrl);
@@ -347,6 +394,10 @@ namespace Indexer
         private ToolStripMenuItem uploadAllToolStripMenuItem;
         private BackgroundWorker bgwLoadData;
         private BackgroundWorker bgwInsertAll;
+        private CheckBox chkIns;
+        private CheckBox chkInit;
+        private CheckBox chkPros;
+        private ToolStripStatusLabel toolStripStatusLabel1;
     }
 }
 

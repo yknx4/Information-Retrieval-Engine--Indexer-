@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -25,12 +26,25 @@ namespace Engine.Tools
            return ExtractTextBetweenTag(source,"title");
         }
 
-        public static string TrimTag(string source, string tag)
+        private static readonly Dictionary<string, Regex> regexForTag = new Dictionary<string, Regex>();
+
+        
+        private static Regex GetRegexForTag(string tag)
         {
-            var regexString = @"\<(?:[^:]+:)?TAG.*?\<\/(?:[^:]+:)?TAG\>";
-            regexString = regexString.Replace("TAG", tag);
-            var rRemScript = new Regex(regexString,RegexOptions.Singleline|RegexOptions.IgnoreCase); 
-            return rRemScript.Replace(source, "");
+            const string regexString = @"\<(?:[^:]+:)?TAG.*?\<\/(?:[^:]+:)?TAG\>";
+            if (regexForTag.ContainsKey(tag))
+            {
+                return regexForTag[tag];
+            }
+            var regexFinal = regexString.Replace("TAG", tag);
+            var rg = new Regex(regexFinal, RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled); 
+            regexForTag.Add(tag,rg);
+            return rg;
+        }
+
+        public static string TrimTag(string source, string tag)
+        {            
+            return GetRegexForTag(tag).Replace(source, "");
         }
         public static string StripTagsCharArray(string source, bool removeScripts, bool removeStyles)
         {

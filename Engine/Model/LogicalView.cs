@@ -1,19 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
 using Engine.Tools;
-using MySql.Data.MySqlClient;
 
 namespace Engine.Model
 {
     public class LogicalView
     {
+        public static int InsertedViewsCount { get; private set; }
+        public static int ProcessingViewsCount { get; set; }
         public bool IsFromUrl { get; private set; }
         public bool IsInitialized { get; private set; }
+        public bool IsProcessing
+        {
+            get { return _isProcessing; }
+            set
+            {
+                _isProcessing = value;
+                if(_isProcessing)
+                ProcessingViewsCount++;
+                else
+                {
+                    ProcessingViewsCount--;
+                }
+            }
+        }
+
+        public bool IsInserted
+        {
+            get { return _isInserted; }
+            set
+            {
+                _isInserted = value;
+                InsertedViewsCount++;
+            }
+        }
+
         public Uri SourceUri { get; private set; }
 
         public LogicalView(string rawInput)
@@ -22,14 +47,14 @@ namespace Engine.Model
             rawInput = WebUtility.HtmlDecode(rawInput);
             _data = rawInput;
             Title = HtmlTools.ExtractTitle(rawInput);
-            
+
         }
 
         public LogicalView(Uri location)
         {
             SourceUri = location;
             Title = location.ToString();
-            IsFromUrl = true;           
+            IsFromUrl = true;
         }
 
         private String _data;
@@ -39,7 +64,7 @@ namespace Engine.Model
             get { return _data; }
         }
         [DefaultValue(3)]
-        public int GroupSize { get;  set; }
+        public int GroupSize { get; set; }
 
         public int NumberOfKeywords
         {
@@ -47,7 +72,9 @@ namespace Engine.Model
         }
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
-        Dictionary<string, int> _indexTermsCount = new Dictionary<string, int>();
+        readonly Dictionary<string, int> _indexTermsCount = new Dictionary<string, int>();
+        private bool _isInserted;
+        private bool _isProcessing;
         public Dictionary<string, int> IndexTermsCount { get { return _indexTermsCount; } }
 
         public string Title { get; private set; }
@@ -63,49 +90,59 @@ namespace Engine.Model
             }
             else
             {
-                IndexTermsCount.Add(term,1);
+                IndexTermsCount.Add(term, 1);
             }
         }
 
         public void Initialize()
         {
-            if(IsInitialized) return;
-            if (IsFromUrl)
+            if (IsInitialized) return;
+            try
             {
-                using (var client = new WebClient())
+                if (IsFromUrl)
                 {
-                    client.Encoding = Encoding.UTF8;
-                    _data = client.DownloadString(SourceUri);
-                   
+                    using (var client = new WebClient())
+                    {
+                        client.Encoding = Encoding.UTF8;
+                        _data = client.DownloadString(SourceUri);
+
+                    }                    
+                    _data = WebUtility.HtmlDecode(_data);
+                    _data = StringTools.RemoveDiacritics(_data);
+                    Title = HtmlTools.ExtractTitle(_data);
                 }
-                _data = StringTools.RemoveDiacritics(_data);
-                _data = WebUtility.HtmlDecode(_data);
-                Title = HtmlTools.ExtractTitle(_data);
+                IsProcessing = true;
+                _data = HtmlTools.StripTagsCharArray(_data, true, true);
+                _data = StringTools.RemoveNonChar(_data);
+                
+                if (GroupSize <= 0) GroupSize = 3;
+                if (Title.Length > 0)
+                    foreach (var term in DivideStringInGroups(Title, GroupSize))
+                    {
+                        if (term.Length == GroupSize) AddTerm(term);
+                    }
+
+                if (Data.Length > 0)
+                    foreach (var term in DivideStringInGroups(_data, GroupSize))
+                    {
+                        if (term.Length == GroupSize) AddTerm(term);
+                    }
+                IsProcessing = false;
+
+                IsInitialized = true;
+                EngineLogger.Log(this, Title + " initialized.");
+                
             }
-
-            _data = HtmlTools.StripTagsCharArray(_data, true, true);
-            _data = StringTools.RemoveNonChar(_data);
-
-            if (GroupSize <= 0) GroupSize = 3;
-            if(Title.Length>0)
-            foreach (var term in DivideStringInGroups(Title,GroupSize))
+            catch (Exception)
             {
-                if(term.Length==GroupSize) AddTerm(term);
+                IsInitialized = false;
             }
-
-            if(Data.Length>0)
-            foreach (var term in DivideStringInGroups(_data, GroupSize))
-            {
-                if (term.Length == GroupSize) AddTerm(term);
-            }
-
-            IsInitialized = true;
-            EngineLogger.Log(this, Title+" initialized.");
+           
         }
 
         private static IEnumerable<string> DivideStringInGroups(string source, int groupSize)
         {
-            var numberOfGroups = source.Length-groupSize;
+            var numberOfGroups = source.Length - groupSize;
             if (numberOfGroups < 0) return null;
             var finalArray = new String[numberOfGroups];
             var tmpCharArray = new Char[groupSize];
@@ -127,7 +164,7 @@ namespace Engine.Model
                     stringArrayIndex++;
                     lastSourceIndex++;
                     charArrayIndex = 0;
-                    index = lastSourceIndex-1;
+                    index = lastSourceIndex - 1;
                     if (stringArrayIndex == numberOfGroups)
                         break;
                 }

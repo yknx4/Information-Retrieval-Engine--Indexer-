@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Engine.Tools
@@ -11,6 +12,11 @@ namespace Engine.Tools
         //   (e.g. accents, umlauts, etc.). 
         private readonly static Regex NonSpacingMarkRegex =
             new Regex(@"\p{Mn}", RegexOptions.Compiled);
+
+        public static bool IsSame(string input1, string input2)
+        {
+            return String.Compare(input1, input2, StringComparison.InvariantCultureIgnoreCase) == 0;
+        }
 
         public static string RemoveDiacritics(string text)
         {
@@ -48,8 +54,9 @@ namespace Engine.Tools
 
             }
             var result = new string(array, 0, arrayIndex);
-            result = result.Replace("\n ", "");
-            return result.Trim();
+            //result = result.Replace("\n ", "");
+            //return result.Trim();
+            return result;
         }
         public static string RemoveSpaces(string source)
         {
@@ -59,11 +66,12 @@ namespace Engine.Tools
         {
             return source.Replace("\t", " ");
         }
+
+         const RegexOptions TrimSpacesRegexOptions = RegexOptions.Compiled;
+        public static Regex TrimSpaceRegex = new Regex(@"[ ]{2,}", TrimSpacesRegexOptions);
         public static string TrimSpaces(string source)
-        {
-            const RegexOptions options = RegexOptions.None;
-            var regex = new Regex(@"[ ]{2,}", options);
-           return regex.Replace(source, @" ");
+        {                       
+           return TrimSpaceRegex.Replace(source, @" ");
         }
         public static string TrimNewLines(string source)
         {

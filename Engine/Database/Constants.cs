@@ -28,10 +28,10 @@ namespace Engine.Database
 
         public const int TermIdMaximumTries = 3;
 
-        public const double CommitInterval = 10000;
-        public const double DocumentCommitInterval = 5000;
+        public const double CommitInterval = 100;
+        public static double DocumentCommitInterval = 1000;
         public const double RetryInterval = 15000;
-        public const int QueriesPerTransaction = 400;
+        public const int QueriesPerTransaction = 10000;
         public const int DocumentQueriesPerTransaction = 2;
         public const int MaxTimeout = 2147483;
         public const int MaxConnections = 50;
@@ -41,8 +41,11 @@ namespace Engine.Database
         {
             public const string InsertDocumentQuery =
                 "INSERT IGNORE INTO `" + DataContract.DocumentEntry.TableName + "` (`" + DataContract.DocumentEntry.Url + "`,`" + DataContract.DocumentEntry.UrlHash + "`,`" + DataContract.DocumentEntry.Title + "`) VALUES (" + Parameters.Url + ",md5(" + Parameters.Url + ")," + Parameters.Title + ");";
+
             public const string InsertTermQuery =
-                "INSERT IGNORE INTO `" + DataContract.TermEntry.TableName + "` (`" + DataContract.TermEntry.Value + "`) VALUES (" + Parameters.Value + ");";
+                "INSERT IGNORE INTO `" + DataContract.TermEntry.TableName + "` (`" + DataContract.TermEntry.Value +
+                "`) VALUES ";
+            public const string InsertTermValues = "(" + Parameters.Value + ")";
 
             public const string SelectAllTermsQuery = "SELECT * FROM " + DataContract.TermEntry.TableName + ";";
 
@@ -52,7 +55,10 @@ namespace Engine.Database
                "SELECT COALESCE((SELECT `" + DataContract.TermEntry.Id + "` FROM `" + DataContract.TermEntry.TableName + "` WHERE `" + DataContract.TermEntry.Value + "` = " + Parameters.Value + "),-1) as " + DataContract.TermEntry.Id + ";";
 
             public const string InsertWeightQuery =
-                "INSERT IGNORE INTO `" + DataContract.WeightEntry.TableName + "`(`" + DataContract.WeightEntry.TermId + "`,`" + DataContract.WeightEntry.DocumentId + "`,`" + DataContract.WeightEntry.Count + "`) values (" + Parameters.TermId + "," + Parameters.DocumentId + "," + Parameters.Count + ");";
+                "INSERT IGNORE INTO `" + DataContract.WeightEntry.TableName + "`(`" + DataContract.WeightEntry.TermId +
+                "`,`" + DataContract.WeightEntry.DocumentId + "`,`" + DataContract.WeightEntry.Count + "`) values ";
+
+            public const string InsertWeightValues = "(" + Parameters.TermId + "," + Parameters.DocumentId + "," + Parameters.Count + ")";
         }
 
         public abstract class Parameters

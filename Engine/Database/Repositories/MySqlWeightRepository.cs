@@ -76,7 +76,7 @@ namespace Engine.Database.Repositories
             
             if (QueryQueue.IsEmpty)
             {
-
+                CommitTimer.Stop();
                 MySqlRepositoriesSync.IsWeightRepositoryWorking = false;
                 return;
             }
@@ -86,6 +86,7 @@ namespace Engine.Database.Repositories
             var queryBuilder = new StringBuilder();
             Tuple<string, string> queueItem;
             var queueCount = 0;
+            queryBuilder.Append(Constants.Queries.InsertWeightQuery);
             while (QueryQueue.TryDequeue(out queueItem) && queueCount < Constants.QueriesPerTransaction)
             {
                 if (queueItem == null)
@@ -94,14 +95,17 @@ namespace Engine.Database.Repositories
                     continue;
                 }
                 var localQuery = GenericTools.FillParameter(queueItem.Item1, Constants.Parameters.TermId, MySqlTermRepository.GetTermId(queueItem.Item2));
-                queryBuilder.Append(localQuery);
+                queryBuilder.Append(localQuery+",");
+                
                 queueCount++;
             }
+            if(!(queueCount>0)) return;
+            
             //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
-            var conn = MySqlDbConnection.GetConnection();
+            var conn = MySqlDbConnection.GetConnectionWithPriority();
             using (var cmd = conn.CreateCommand())
             {
-                var finalQuery = queryBuilder.ToString();
+                var finalQuery = queryBuilder.ToString().TrimEnd(',');
                 EngineLogger.Log(ClassName, "Query to process: " + finalQuery);
                 //conn.Open();
                 cmd.CommandText = finalQuery;
@@ -123,6 +127,7 @@ namespace Engine.Database.Repositories
         public void InsertBatch(int documentId, IDictionary<string, int> values)
         {
             EngineLogger.Log(this, "Added " + values.Count + " elements to queue.");
+            
             foreach (var dictValue in values)
             {
                 Insert(documentId,dictValue);
@@ -143,11 +148,15 @@ namespace Engine.Database.Repositories
                 Retry(documentId,value);
                 return;
             }
-            var localQuery = Constants.Queries.InsertWeightQuery;
+            var localQuery = Constants.Queries.InsertWeightValues;
             
             localQuery = GenericTools.FillParameter(localQuery, Constants.Parameters.DocumentId, documentId);
             localQuery = GenericTools.FillParameter(localQuery, Constants.Parameters.Count, value.Value);
             QueryQueue.Enqueue(new Tuple<string,string>(localQuery,value.Key));
+            if (!CommitTimer.Enabled)
+            {
+                CommitTimer.Start();
+            }
         }
 
         private static void Retry(int documentId, KeyValuePair<string, int> value)

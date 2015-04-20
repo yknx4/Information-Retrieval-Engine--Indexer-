@@ -41,6 +41,7 @@ namespace Engine.Database.Repositories
 
             if (QueryQueue.IsEmpty)
             {
+                CommitTimer.Stop();
                 MySqlRepositoriesSync.IsTermRepositoryWorking = false;
                 return;
             }
@@ -50,6 +51,7 @@ namespace Engine.Database.Repositories
             }
             MySqlRepositoriesSync.IsTermRepositoryWorking = true;
             var queryBuilder = new StringBuilder();
+            queryBuilder.Append(Constants.Queries.InsertTermQuery);
             var queuedTerms = new List<String>();
             Tuple<string, string> queueItem;
             var queueCount = 0;
@@ -61,17 +63,17 @@ namespace Engine.Database.Repositories
                     continue;
                 }
                 if (TermsIdDictionary.ContainsKey(queueItem.Item2)) continue;
-                queryBuilder.Append(GenericTools.NumberStatementParameter(queueItem.Item1, Constants.Parameters.Value, queueCount));
+                queryBuilder.Append(GenericTools.NumberStatementParameter(queueItem.Item1, Constants.Parameters.Value, queueCount)+",");
                 queuedTerms.Add(queueItem.Item2);
                 queueCount++;
             }
             //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
-            var finalQuery = queryBuilder.ToString();
-            if (!string.IsNullOrEmpty(finalQuery))
+            var finalQuery = queryBuilder.ToString().TrimEnd(',');
+            if (!string.IsNullOrEmpty(finalQuery) && queueCount>0)
             {
 
 
-                var conn = MySqlDbConnection.GetConnection();
+                var conn = MySqlDbConnection.GetConnectionWithPriority();
                 using (var cmd = conn.CreateCommand())
                 {
                     
@@ -149,10 +151,14 @@ namespace Engine.Database.Repositories
 
         public void Insert(string input)
         {
-            var localQuery = Constants.Queries.InsertTermQuery;
+            const string localQuery = Constants.Queries.InsertTermValues;
             //localQuery = GenericTools.FillParameter(localQuery, Constants.Parameters.Value, input.Replace("'", "''"));
+            
             QueryQueue.Enqueue(new Tuple<string, string>(localQuery, input));
-
+            if (!CommitTimer.Enabled)
+            {
+                CommitTimer.Start();
+            }
         }
 
         public void InsertBatch(IEnumerable<string> input)
@@ -183,10 +189,14 @@ namespace Engine.Database.Repositories
         private readonly IWeightRepository _weightRepository = new MySqlWeightRepository();
         public void Insert(int documenId, KeyValuePair<string, int> value)
         {
-            var localQuery = Constants.Queries.InsertTermQuery;
+            var localQuery = Constants.Queries.InsertTermValues;
             //USED BEFORE, LEFT IN CASE OF DEBUG
             //localQuery = GenericTools.FillParameter(localQuery, Constants.Parameters.Value, value.Key.Replace("'", "''"));
             QueryQueue.Enqueue(new Tuple<string, string>(localQuery, value.Key));
+            if (!CommitTimer.Enabled)
+            {
+                CommitTimer.Start();
+            }
             _weightRepository.Insert(documenId, value);
         }
 
@@ -247,7 +257,7 @@ namespace Engine.Database.Repositories
         {
             var result = -1;
             //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
-            var conn = MySqlDbConnection.GetConnection();
+            var conn = MySqlDbConnection.GetConnectionWithPriority();
             using (var cmd = conn.CreateCommand())
             {
                 try

@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
+using System.IO;
 
 namespace Engine
 {
     public class EngineLogger
     {
+       
         static EngineLogger()
         {
             Debug.WriteLine("Engine logger initialized.");
