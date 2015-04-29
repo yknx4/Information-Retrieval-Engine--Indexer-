@@ -194,5 +194,36 @@ namespace Engine.Database.Repositories
             }           
 
         }
+
+        public static string GetDocumentName(int id)
+        {
+            var result = "";
+            //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
+            var conn = MySqlDbConnection.GetConnectionWithPriority();
+            using (var cmd = conn.CreateCommand())
+            {
+                try
+                {
+                    //conn.Open();
+                    cmd.CommandText = Constants.Queries.SelectDocumentNameFromId;
+                    cmd.Prepare();
+                    cmd.Parameters.AddWithValue(Constants.Parameters.DocumentId, id);
+                    result = cmd.ExecuteScalar().ToString();
+                }
+                catch (MySqlException ex)
+                {
+                    if (ex.ToString() != string.Empty) result = "as";
+                    // do somthing with the exception
+                    // don't hide it
+                }
+                catch (NullReferenceException)
+                {
+                    EngineLogger.Log(ClassName, "Algo empezo a tronar.");
+                    
+                }
+            }
+            MySqlDbConnection.ReturnConnection(conn);
+            return result;
+        }
     }
 }

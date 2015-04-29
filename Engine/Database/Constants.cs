@@ -2,7 +2,7 @@
 
 namespace Engine.Database
 {
-    abstract class Constants
+    public abstract class Constants
     {
         public const string Server = "localhost";
         public const string UserName = "yknx4";
@@ -59,6 +59,7 @@ namespace Engine.Database
                 "`,`" + DataContract.WeightEntry.DocumentId + "`,`" + DataContract.WeightEntry.Count + "`) values ";
 
             public const string InsertWeightValues = "(" + Parameters.TermId + "," + Parameters.DocumentId + "," + Parameters.Count + ")";
+            public const string SelectDocumentNameFromId = "select url from documents where id =" +Parameters.DocumentId;
         }
 
         public abstract class Parameters
@@ -71,6 +72,11 @@ namespace Engine.Database
             public const string Count = "@count";
 
         }
-        
+
+        public const string DocumentsFileName = "documents.bin";
+        public const string IntermediateFileName = "intermediate.bin";
+        public const string FinalIndexFile = "final.bin";
+        public const string FinalAuxiliarFile = "final_aux.bin";
+
     }
 }

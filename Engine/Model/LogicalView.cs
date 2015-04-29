@@ -43,10 +43,12 @@ namespace Engine.Model
 
         public LogicalView(string rawInput)
         {
-            rawInput = StringTools.RemoveDiacritics(rawInput);
-            rawInput = WebUtility.HtmlDecode(rawInput);
+            //rawInput = StringTools.RemoveDiacritics(rawInput);
+            //rawInput = WebUtility.HtmlDecode(rawInput);
+            Title = String.Empty;
+            IsFromUrl = false;
             _data = rawInput;
-            Title = HtmlTools.ExtractTitle(rawInput);
+            //Title = HtmlTools.ExtractTitle(rawInput);
 
         }
 

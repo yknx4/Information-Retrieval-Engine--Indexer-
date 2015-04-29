@@ -48,7 +48,10 @@ namespace TableFileGenerator
             }
         }
 
-        public static string DocumentsFileName = "documents.bin";
+        public const string DocumentsFileName = "documents.bin";
+        public const string IntermediateFileName = "intermediate.bin";
+        public const string FinalIndexFile = "final.bin";
+        public const string FinalAuxiliarFile = "final_aux.bin";
 
 
     }

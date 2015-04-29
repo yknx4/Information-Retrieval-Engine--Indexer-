@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,26 @@ namespace TableFileGenerator
 {
     class Program
     {
-        private Dictionary<int, int> _documentMaxTf = new Dictionary<int, int>();
-        private Dictionary<int, int> _termDf = new Dictionary<int, int>();
+        double Idf(int i)
+        {
+            return Math.Log(_documentMaxTf.Count)/_termDf[i];
+        }
+
+        double NormalizedFrecuencie(int docid, int frecuencia)
+        {
+            return ((double) frecuencia)/_documentMaxTf[docid];
+        }
+
+        double Weight(int indice, int documento, int frecuencia)
+        {
+            return NormalizedFrecuencie(documento,frecuencia)*Idf(indice);
+        }
+
+
+        private readonly Dictionary<int, int> _documentMaxTf = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> _termDf = new Dictionary<int, int>();
+        private readonly SortedDictionary<int, int> _termPointers = new SortedDictionary<int, int>();
+        private LinkedList<IntermediateFileEntry> _intermediateFileEntries = new LinkedList<IntermediateFileEntry>();
         private int[] _currentDocs;
         class Document
         {
@@ -19,7 +38,13 @@ namespace TableFileGenerator
             public readonly Queue<Tuple<int, int>> KeysAndCountInts = new Queue<Tuple<int, int>>();
         }
 
-        private Document currentDocument;
+        struct IntermediateFileEntry
+        {
+            public int DocumentId;
+            public int TermCount;
+            public int NextPointer;
+        }
+        private Document _currentDocument;
         Document GenerateDocument(int docuementId)
         {
             var results = new Document { Id = docuementId };
@@ -89,11 +114,165 @@ namespace TableFileGenerator
 
         void Exec()
         {
-            using (BinaryWriter b = new BinaryWriter(File.Open(Constants.DocumentsFileName, FileMode.Create)))
+            DocumentFile();
+            IntermediateFile();
+
+            Console.WriteLine("\n-----------------------------------------------------\n");
+            Console.WriteLine("Inverted Index File");
+            Console.WriteLine();
+            Console.WriteLine("Document ID\tWeight");
+            using (new BinaryWriter(File.Open(Constants.FinalIndexFile, FileMode.Create)))
+            {
+            }
+//            using (new BinaryWriter(File.Open(Constants.FinalAuxiliarFile, FileMode.Create)))
+//            {
+//            }
+            using (var r = new BinaryReader(File.OpenRead(Constants.IntermediateFileName)))
+            using (var w = new BinaryWriter(File.Open(Constants.FinalIndexFile, FileMode.OpenOrCreate)))
+            //using (var a = new BinaryWriter(File.Open(Constants.FinalAuxiliarFile, FileMode.OpenOrCreate)))
+            {
+                
+                foreach (var tentr in _firstAuxiliarDictionary)
+                {
+                    var indexid = tentr.Key;
+                    
+                    Console.WriteLine("Term "+indexid);
+                    // 2.
+                    // Important variables:
+                    //int length = (int)b.BaseStream.Length;
+                    var pos = tentr.Value.pointer;
+                    tentr.Value.pointer = w.BaseStream.Position;
+                    //int required = 2000;
+                    //int count = 0;
+
+                    // 3.
+                    // Seek the required index.
+                    var count = 0;
+                    do
+                    {
+                        r.BaseStream.Seek(pos, SeekOrigin.Begin);
+                        var docid = r.ReadInt32();
+                        var frec = r.ReadInt32();
+                        var pointer = r.ReadInt64();
+                        pos = pointer;
+                        w.Write(docid);
+                        w.Write(Weight(indexid, docid, frec));                        
+                        count++;
+                    } while (pos != -1);
+
+                    Console.WriteLine("Term Finished ");
+                    var storedCount = _termDf[indexid];
+                    if (count == storedCount)
+                    {
+                        Console.WriteLine(" OK");    
+                    }
+                    else
+                    {
+                        Console.WriteLine("Fail");   
+                    }
+                }
+            }
+
+            using (var a = new BinaryWriter(File.Open(Constants.FinalAuxiliarFile, FileMode.OpenOrCreate)))
+            {
+                foreach (var auxiliarFileEntry in _firstAuxiliarDictionary)
+                {
+                    a.Write(auxiliarFileEntry.Value.term);
+                    a.Write(auxiliarFileEntry.Value.df);
+                    a.Write(auxiliarFileEntry.Value.pointer);
+                }
+            }
+
+            Console.Read();
+        }
+        readonly Dictionary<int, AuxiliarFileEntry> _firstAuxiliarDictionary = new Dictionary<int, AuxiliarFileEntry>();
+        private void IntermediateFile()
+        {
+            using (new BinaryWriter(File.Open(Constants.IntermediateFileName, FileMode.Create)))
+            {
+            }
+
+            Console.WriteLine("\n-----------------------------------------------------\n");
+            Console.WriteLine("Intermediate File");
+            Console.WriteLine();
+            Console.WriteLine("Document ID\tTerm Count\tNext");
+
+            
+            var entry = new AuxiliarFileEntry();
+            using (var w = new BinaryWriter(File.Open(Constants.IntermediateFileName, FileMode.OpenOrCreate)))
+            using (var r = new BinaryReader(File.OpenRead(Constants.DocumentsFileName)))
+            {
+                 while (r.BaseStream.Position != r.BaseStream.Length)
+                 {
+                     var docid = r.ReadInt32();
+                     var termid = r.ReadInt32();
+                     var count = r.ReadInt32();
+                     if (!_firstAuxiliarDictionary.ContainsKey(termid))
+                     {
+                         var newEntry = new AuxiliarFileEntry
+                         {
+                             pointer = w.BaseStream.Position, 
+                             df = 1, 
+                             term = termid
+                         };
+                         _firstAuxiliarDictionary.Add(termid,newEntry);
+
+                         w.Write(docid);
+                         w.Write(count);
+                         w.Write((long)-1);
+                         Console.WriteLine(docid + "\t" + count + "\t" + "NULL" );
+                     }
+                     else
+                     {
+                         var oldEntry = _firstAuxiliarDictionary[termid];
+                         var oldPos = oldEntry.pointer;
+                         var newPos = w.BaseStream.Position;
+                         oldEntry.df++;
+                         oldEntry.pointer = newPos;
+                         w.Write(docid);
+                         w.Write(count);
+                         w.Write(oldPos);
+                         Console.WriteLine(docid + "\t" +count+ "\t" + oldPos);
+                     }
+                 }
+                
+
+
+
+            }
+
+
+
+
+
+    
+
+
+
+
+
+
+
+//            using (var r = new BinaryReader(File.OpenRead(Constants.DocumentsFileName)))
+//            {
+//                using (var w = new BinaryWriter(File.Open(Constants.IntermediateFileName, FileMode.OpenOrCreate)))
+//                {
+//                    var entry = new IntermediateFileEntry();
+//                    while (r.BaseStream.Position != r.BaseStream.Length)
+//                    {
+//                        GenerateIntermediateEntries(ref entry, w, r);
+//                    }
+//                }
+//            }
+        }
+        private void DocumentFile()
+        {
+            Console.WriteLine("Document File");
+            using (var b = new BinaryWriter(File.Open(Constants.DocumentsFileName, FileMode.Create)))
             {
             }
             var documentPointer = 0;
-            using (BinaryWriter b = new BinaryWriter(File.Open(Constants.DocumentsFileName, FileMode.OpenOrCreate)))
+            using (var b = new BinaryWriter(File.Open(Constants.DocumentsFileName, FileMode.OpenOrCreate)))
             {
                 while (_hasMoreDocuments)
                 {
@@ -103,30 +282,45 @@ namespace TableFileGenerator
                     foreach (var currentDoc in _currentDocs)
                     {
                         if (currentDoc == 0) break;
-                        currentDocument = GenerateDocument(currentDoc);
+                        _currentDocument = GenerateDocument(currentDoc);
                         //Console.ReadLine();
+                        while (_currentDocument.KeysAndCountInts.Count > 0)
+                        {
+                            b.Write(_currentDocument.Id);
+                            var item = _currentDocument.KeysAndCountInts.Dequeue();
+                            b.Write(item.Item1);
+                            b.Write(item.Item2);
+                        }
                     }
 
-                    b.Write(currentDocument.Id);
-                    while (currentDocument.KeysAndCountInts.Count > 0)
-                    {
-                        var item = currentDocument.KeysAndCountInts.Dequeue();
-                        b.Write(item.Item1);
-                        b.Write(item.Item2);
-                    }
-                    b.Write((byte)0);
-                    b.Write("ff");
-                    b.Write((byte)0);
+
+                    
+                    //Sign(b);
+
 
 
                 }
             }
-            Console.Read();
         }
+        private static void Sign(BinaryWriter b)
+        {
+            b.Write((int)0);
+            b.Write(0xFF);
+            b.Write(0xFF);
+            b.Write((int)0);
 
+        }
         static void Main(string[] args)
         {
             new Program().Exec();
         }
+    }
+
+    internal class AuxiliarFileEntry
+    {
+        public int term;
+        public int df;
+        public long pointer;
+
     }
 }
