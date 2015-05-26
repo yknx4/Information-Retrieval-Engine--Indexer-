@@ -52,7 +52,7 @@ namespace Indexer
             }
             catch (UriFormatException er)
             {
-                lblStatus1.Text = Resources.The_input_URL_is_invalid;
+                lblStatus1.Text = Resources.The_input_URL_is_invalid+" : "+er;
             }
         }
 
@@ -151,6 +151,7 @@ namespace Indexer
                 case DialogResult.OK:
 
                     var urls = File.ReadAllLines(opfDialog.FileName);
+                    
                     foreach (var url in urls)
                     {
                         try
@@ -161,7 +162,7 @@ namespace Indexer
                         }
                         catch (UriFormatException er)
                         {
-                            lblStatus1.Text = Resources.The_input_URL_is_invalid;
+                            lblStatus1.Text = Resources.The_input_URL_is_invalid+" : "+er;
                         }
                     }
 

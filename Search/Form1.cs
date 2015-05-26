@@ -31,5 +31,10 @@ namespace Search
                 lstResult.Items.Add(MySqlDocumentRepository.GetDocumentName(resulten.Key) + " => " + resulten.Value);
             }
         }
+
+        private void btnStartServer_Click(object sender, EventArgs e)
+        {
+            new ServerInterfce().Show();
+        }
     }
 }

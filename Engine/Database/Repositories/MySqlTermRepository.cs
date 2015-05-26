@@ -35,10 +35,12 @@ namespace Engine.Database.Repositories
             CommitTimer.Enabled = true;
         }
 
-        
+        private static ConcurrentQueue<object> toRetry = new ConcurrentQueue<object>();
+        private static int currentThreads = 0;
         private static void CommitQuery(object source, ElapsedEventArgs e)
         {
-
+            currentThreads++;
+            if(currentThreads>Constants.MaximumTermsThreads)
             if (QueryQueue.IsEmpty)
             {
                 CommitTimer.Stop();
@@ -62,7 +64,7 @@ namespace Engine.Database.Repositories
                     EngineLogger.Log(ClassName, "WTF!?");
                     continue;
                 }
-                if (TermsIdDictionary.ContainsKey(queueItem.Item2)) continue;
+                if (_termsIdDictionary.ContainsKey(queueItem.Item2)) continue;
                 queryBuilder.Append(GenericTools.NumberStatementParameter(queueItem.Item1, Constants.Parameters.Value, queueCount)+",");
                 queuedTerms.Add(queueItem.Item2);
                 queueCount++;
@@ -72,7 +74,25 @@ namespace Engine.Database.Repositories
             if (!string.IsNullOrEmpty(finalQuery) && queueCount>0)
             {
 
-
+                if (!toRetry.IsEmpty)
+                {
+                    object tmp;
+                    if (toRetry.TryDequeue(out tmp))
+                    {
+                        var cmd = tmp as MySqlCommand;
+                        using (cmd)
+                        {
+                            try
+                            {
+                                cmd.ExecuteNonQuery();
+                            }
+                            catch (Exception ex)
+                            {
+                                EngineLogger.Log(ClassName, "Exception on retrying query! Check it! " + ex);
+                            }
+                        }
+                    }
+                }
                 var conn = MySqlDbConnection.GetConnectionWithPriority();
                 using (var cmd = conn.CreateCommand())
                 {
@@ -93,9 +113,16 @@ namespace Engine.Database.Repositories
                     catch (Exception ex)
                     {
                         EngineLogger.Log(ClassName, "Exception on query! Check it! " + ex);
+                        toRetry.Enqueue(cmd);
+
+                    }
+                    finally
+                    {
+                        MySqlDbConnection.ReturnConnection(conn);
+                        currentThreads--;
                     }
                 }
-                MySqlDbConnection.ReturnConnection(conn);
+                
             }
             if (QueryQueue.IsEmpty)
             {
@@ -121,7 +148,7 @@ namespace Engine.Database.Repositories
 
         public static int TermCount
         {
-            get { return TermsIdDictionary.Count; }
+            get { return _termsIdDictionary.Count; }
         }
         public IEnumerable<Term> GetAll()
         {
@@ -148,7 +175,30 @@ namespace Engine.Database.Repositories
             MySqlDbConnection.ReturnConnection(conn);
             return results;
         }
+        public Dictionary<String, int> GetAll(bool dictionary)
+        {
+            var results = new Dictionary<String, int>();
+            //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
+            var conn = MySqlDbConnection.GetConnection();
+            using (var cmd = conn.CreateCommand())
+            {
+                //conn.Open();
+                cmd.CommandText = Constants.Queries.SelectAllTermsQuery;
+                cmd.CommandTimeout = Constants.MaxTimeout;
+                var reader = cmd.ExecuteReader();
 
+                while (reader.Read())
+                {
+
+                    var id = reader.GetInt32(0);
+                    var value = reader.GetString(1);
+                    
+                    results.Add(value,id);
+                }
+            }
+            MySqlDbConnection.ReturnConnection(conn);
+            return results;
+        }
         public void Insert(string input)
         {
             const string localQuery = Constants.Queries.InsertTermValues;
@@ -204,30 +254,30 @@ namespace Engine.Database.Repositories
 
 
         //TODO: Move retry to Async task, never get id on main thread.
-        private static readonly Dictionary<String, int> TermsIdDictionary = new Dictionary<string, int>();
+        private static Dictionary<String, int> _termsIdDictionary = new Dictionary<string, int>();
 
-        private static int singleTermCount = 0;
+        private static int _singleTermCount = 0;
 
 
         public static int GetTermId(string value)
         {
             var id = -1;
             var orval = value;
-            value = value.ToLower();
-            value = value.ToLowerInvariant();
-            value = StringTools.RemoveDiacritics(value);
+            //value = value.ToLower();
+            //value = value.ToLowerInvariant();
+            //value = StringTools.RemoveDiacritics(value);
             var roundCount = 0;
             var found = false;
             while (roundCount < Constants.TermIdMaximumTries && !found)
             {
                 roundCount++;
-                if (singleTermCount > 100)
+                if (_singleTermCount > 2000)
                 {
                     
                     UpdateTerms();
-                    singleTermCount = 0;
+                    _singleTermCount = 0;
                 }
-                if (!TermsIdDictionary.TryGetValue(value, out id))
+                if (!_termsIdDictionary.TryGetValue(value.ToLowerInvariant(), out id))
                 {
                     //EngineLogger.Log(ClassName, "Couldn't find id for " + value + " in cache. Trying on DB.");
                     id = -1;
@@ -238,13 +288,13 @@ namespace Engine.Database.Repositories
                 }
                 if (id < 0)
                 {
-                    singleTermCount++;
+                    _singleTermCount++;
                     id = GetTermId(orval, true);
                 }
                 if (id > 0)
                 {
                     found = true;
-                    if (!TermsIdDictionary.ContainsKey(value)) TermsIdDictionary.Add(value, id);
+                    if (!_termsIdDictionary.ContainsKey(value.ToLowerInvariant())) _termsIdDictionary.Add(value.ToLowerInvariant(), id);
                     continue;
                 }
 
@@ -277,7 +327,7 @@ namespace Engine.Database.Repositories
                 catch (NullReferenceException)
                 {
                     EngineLogger.Log(ClassName, "Algo empezo a tronar.");
-                    Thread.Sleep(10000);
+//                    Thread.Sleep(10000);
                 }
             }
             MySqlDbConnection.ReturnConnection(conn);
@@ -290,20 +340,22 @@ namespace Engine.Database.Repositories
         {
             if (_updating)
             {
-                while (_updating)
-                {
-
-                }
+//                while (_updating)
+//                {
+//
+//                }
                 return;
             }
             _updating = true;
             //EngineLogger.Log(ClassName, "Updating Terms");
-            var terms = new MySqlTermRepository().GetAll();
-            foreach (var term in terms)
-            {
-                if (TermsIdDictionary.ContainsKey(term.Value)) continue;
-                TermsIdDictionary.Add(term.Value, term.Id);
-            }
+            var terms = new MySqlTermRepository().GetAll(true);
+            if(terms.Count()==_termsIdDictionary.Count) return;
+            _termsIdDictionary = terms;
+//            foreach (var term in terms)
+//            {
+//                if (TermsIdDictionary.ContainsKey(term.Value)) continue;
+//                TermsIdDictionary.Add(term.Value, term.Id);
+//            }
             _updating = false;
         }
 

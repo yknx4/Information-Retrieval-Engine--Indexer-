@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Engine;
 using Engine.Database;
 
 namespace Tests
@@ -26,6 +27,7 @@ namespace Tests
             sb.AppendLine("TERM\tDF\tPointer");
             using (var f = new BinaryReader(File.OpenRead(Constants.FinalAuxiliarFile)))
             {
+                f.ReadInt64();
                 while (f.BaseStream.Position != f.BaseStream.Length)
                 {
                     for (var i = 0; i < 3; i++)

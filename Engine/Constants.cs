@@ -1,6 +1,7 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Engine.Database;
+using MySql.Data.MySqlClient;
 
-namespace Engine.Database
+namespace Engine
 {
     public abstract class Constants
     {
@@ -8,7 +9,8 @@ namespace Engine.Database
         public const string UserName = "yknx4";
         public const string Password = "konami1994";
         public const string Database = "information_retrieval";
-        public const uint Port = 3306;
+        public const uint DatabasePort = 3306;
+        public const uint SearchPort = 3002;
 
         public static string ConnectionString
         {
@@ -20,16 +22,20 @@ namespace Engine.Database
                     UserID = UserName,
                     Password = Password,
                     Database = Database,
-                    Port = Port
+                    Port = DatabasePort
                 };
                 return connString.ToString();
             }
         }
 
+        public const int MaximumTermsThreads = 20;
+
+        public const int GroupSize = 3;
+
         public const int TermIdMaximumTries = 3;
 
         public const double CommitInterval = 100;
-        public static double DocumentCommitInterval = 1000;
+        public static double DocumentCommitInterval = 500;
         public const double RetryInterval = 15000;
         public const int QueriesPerTransaction = 10000;
         public const int DocumentQueriesPerTransaction = 2;

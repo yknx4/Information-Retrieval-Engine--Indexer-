@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Text;
+using Engine.Database;
 using Engine.Tools;
 
 namespace Engine.Model
@@ -19,6 +20,7 @@ namespace Engine.Model
             get { return _isProcessing; }
             set
             {
+                if (value == _isProcessing) return;
                 _isProcessing = value;
                 if(_isProcessing)
                 ProcessingViewsCount++;
@@ -65,8 +67,7 @@ namespace Engine.Model
         {
             get { return _data; }
         }
-        [DefaultValue(3)]
-        public int GroupSize { get; set; }
+        public const int GroupSize = Constants.GroupSize;
 
         public int NumberOfKeywords
         {
@@ -77,15 +78,16 @@ namespace Engine.Model
         readonly Dictionary<string, int> _indexTermsCount = new Dictionary<string, int>();
         private bool _isInserted;
         private bool _isProcessing;
+        //Query Vector of ordered pairs (x,y), x = term, y = frecuency
         public Dictionary<string, int> IndexTermsCount { get { return _indexTermsCount; } }
 
         public string Title { get; private set; }
 
         private void AddTerm(String term)
         {
-            term = term.ToLower();
+            //term = term.ToLower();
             term = term.ToLowerInvariant();
-            term = term.Trim();
+            //term = term.Trim();
             if (IndexTermsCount.ContainsKey(term))
             {
                 IndexTermsCount[term]++;
@@ -117,17 +119,18 @@ namespace Engine.Model
                 _data = HtmlTools.StripTagsCharArray(_data, true, true);
                 _data = StringTools.RemoveNonChar(_data);
                 
-                if (GroupSize <= 0) GroupSize = 3;
+                
                 if (Title.Length > 0)
-                    foreach (var term in DivideStringInGroups(Title, GroupSize))
+                    foreach (var term in DivideStringInGroups(StringTools.RemoveNonChar(Title), GroupSize))
                     {
-                        if (term.Length == GroupSize) AddTerm(term);
+                         AddTerm(term);
+                         AddTerm(term);
                     }
 
                 if (Data.Length > 0)
                     foreach (var term in DivideStringInGroups(_data, GroupSize))
                     {
-                        if (term.Length == GroupSize) AddTerm(term);
+                         AddTerm(term);
                     }
                 IsProcessing = false;
 
@@ -144,14 +147,15 @@ namespace Engine.Model
 
         private static IEnumerable<string> DivideStringInGroups(string source, int groupSize)
         {
-            var numberOfGroups = source.Length - groupSize;
-            if (numberOfGroups < 0) return null;
+            var sourceSize = source.Length;
+            var numberOfGroups = sourceSize - (groupSize-1);
+            if (numberOfGroups < 1) return null;
             var finalArray = new String[numberOfGroups];
             var tmpCharArray = new Char[groupSize];
             var charArrayIndex = 0;
             var stringArrayIndex = 0;
             var lastSourceIndex = 0;
-            for (var index = 0; index < source.Count(); index++)
+            for (var index = 0; index < sourceSize; index++)
             {
                 var currentChar = source[index];
                 if (charArrayIndex == 0)

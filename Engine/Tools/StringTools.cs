@@ -15,7 +15,7 @@ namespace Engine.Tools
 
         public static bool IsSame(string input1, string input2)
         {
-            return String.Compare(input1, input2, StringComparison.InvariantCultureIgnoreCase) == 0;
+            return String.Equals(input1,input2,StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static string RemoveDiacritics(string text)

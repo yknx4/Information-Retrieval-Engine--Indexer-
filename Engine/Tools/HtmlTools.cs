@@ -55,9 +55,9 @@ namespace Engine.Tools
             var arrayIndex = 0;
             var inside = false;
 
-            foreach (var @let in source)
+            foreach (var @currentCharacter in source)
             {
-                switch (@let)
+                switch (@currentCharacter)
                 {
                     case '<':
                         inside = true;
@@ -67,7 +67,7 @@ namespace Engine.Tools
                         continue;
                 }
                 if (inside) continue;
-                array[arrayIndex] = @let;
+                array[arrayIndex] = @currentCharacter;
                 arrayIndex++;
             }
             var result = new string(array, 0, arrayIndex);           

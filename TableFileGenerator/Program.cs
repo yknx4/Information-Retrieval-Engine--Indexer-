@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 
 namespace TableFileGenerator
@@ -29,8 +26,6 @@ namespace TableFileGenerator
 
         private readonly Dictionary<int, int> _documentMaxTf = new Dictionary<int, int>();
         private readonly Dictionary<int, int> _termDf = new Dictionary<int, int>();
-        private readonly SortedDictionary<int, int> _termPointers = new SortedDictionary<int, int>();
-        private LinkedList<IntermediateFileEntry> _intermediateFileEntries = new LinkedList<IntermediateFileEntry>();
         private int[] _currentDocs;
         class Document
         {
@@ -38,12 +33,6 @@ namespace TableFileGenerator
             public readonly Queue<Tuple<int, int>> KeysAndCountInts = new Queue<Tuple<int, int>>();
         }
 
-        struct IntermediateFileEntry
-        {
-            public int DocumentId;
-            public int TermCount;
-            public int NextPointer;
-        }
         private Document _currentDocument;
         Document GenerateDocument(int docuementId)
         {
@@ -75,6 +64,7 @@ namespace TableFileGenerator
                     //Console.WriteLine("Term: " + id+"\nCount:"+val);
                     i++;
                 }
+                if (!_documentMaxTf.ContainsKey(docuementId))
                 _documentMaxTf.Add(docuementId, valmax);
             }
             return results;
@@ -128,7 +118,7 @@ namespace TableFileGenerator
 //            {
 //            }
             using (var r = new BinaryReader(File.OpenRead(Constants.IntermediateFileName)))
-            using (var w = new BinaryWriter(File.Open(Constants.FinalIndexFile, FileMode.OpenOrCreate)))
+            using (var w = new BinaryWriter(File.Open(Constants.FinalIndexFile, FileMode.Create)))
             //using (var a = new BinaryWriter(File.Open(Constants.FinalAuxiliarFile, FileMode.OpenOrCreate)))
             {
                 
@@ -172,12 +162,17 @@ namespace TableFileGenerator
                     }
                 }
             }
-
-            using (var a = new BinaryWriter(File.Open(Constants.FinalAuxiliarFile, FileMode.OpenOrCreate)))
+            var testDic = new Dictionary<int, bool>();
+            using (var a = new BinaryWriter(File.Open(Constants.FinalAuxiliarFile, FileMode.Create)))
             {
+                a.Write(_firstAuxiliarDictionary.LongCount());
+                cnt++;
                 foreach (var auxiliarFileEntry in _firstAuxiliarDictionary)
                 {
+                    testDic.Add(auxiliarFileEntry.Key,true);
+                    Console.WriteLine("Written {0} - {1} - {2} to Auxiliar File", auxiliarFileEntry.Value.term, auxiliarFileEntry.Value.df, auxiliarFileEntry.Value.pointer);
                     a.Write(auxiliarFileEntry.Value.term);
+                   // a.Write(auxiliarFileEntry.Key);
                     a.Write(auxiliarFileEntry.Value.df);
                     a.Write(auxiliarFileEntry.Value.pointer);
                 }
@@ -185,6 +180,8 @@ namespace TableFileGenerator
 
             Console.Read();
         }
+
+        private static int cnt = 0;
         readonly Dictionary<int, AuxiliarFileEntry> _firstAuxiliarDictionary = new Dictionary<int, AuxiliarFileEntry>();
         private void IntermediateFile()
         {
@@ -199,7 +196,7 @@ namespace TableFileGenerator
 
             
             var entry = new AuxiliarFileEntry();
-            using (var w = new BinaryWriter(File.Open(Constants.IntermediateFileName, FileMode.OpenOrCreate)))
+            using (var w = new BinaryWriter(File.Open(Constants.IntermediateFileName, FileMode.Create)))
             using (var r = new BinaryReader(File.OpenRead(Constants.DocumentsFileName)))
             {
                  while (r.BaseStream.Position != r.BaseStream.Length)
@@ -268,11 +265,9 @@ namespace TableFileGenerator
         private void DocumentFile()
         {
             Console.WriteLine("Document File");
-            using (var b = new BinaryWriter(File.Open(Constants.DocumentsFileName, FileMode.Create)))
-            {
-            }
+           
             var documentPointer = 0;
-            using (var b = new BinaryWriter(File.Open(Constants.DocumentsFileName, FileMode.OpenOrCreate)))
+            using (var b = new BinaryWriter(File.Open(Constants.DocumentsFileName, FileMode.Create)))
             {
                 while (_hasMoreDocuments)
                 {
@@ -294,22 +289,12 @@ namespace TableFileGenerator
                     }
 
 
-                    
-                    //Sign(b);
-
 
 
                 }
             }
         }
-        private static void Sign(BinaryWriter b)
-        {
-            b.Write((int)0);
-            b.Write(0xFF);
-            b.Write(0xFF);
-            b.Write((int)0);
-
-        }
+       
         static void Main(string[] args)
         {
             new Program().Exec();

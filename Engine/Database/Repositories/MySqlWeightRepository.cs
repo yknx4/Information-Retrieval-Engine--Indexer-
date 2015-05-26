@@ -73,7 +73,7 @@ namespace Engine.Database.Repositories
 
         private static void CommitQuery(object source, ElapsedEventArgs e)
         {
-            
+            if(MySqlRepositoriesSync.IsTermRepositoryWorking) return;
             if (QueryQueue.IsEmpty)
             {
                 CommitTimer.Stop();
