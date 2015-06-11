@@ -52,7 +52,7 @@ namespace Indexer
             }
             catch (UriFormatException er)
             {
-                lblStatus1.Text = Resources.The_input_URL_is_invalid+" : "+er;
+                lblStatus1.Text = Resources.The_input_URL_is_invalid + " : " + er;
             }
         }
 
@@ -61,28 +61,29 @@ namespace Indexer
             if (bgwLoadData.IsBusy) bgwLoadData.CancelAsync();
             while (bgwLoadData.IsBusy) { }
             var selectedItem = lstUrs.SelectedItem as LogicalView;
-            
-                LoadInForm(selectedItem);
-           
+
+            LoadInForm(selectedItem);
+
 
         }
 
         private void LoadInForm(LogicalView selectedItem)
         {
-            toolStripStatusLabel1.Text = LogicalView.InsertedViewsCount + " inserted documents into DB.   "+LogicalView.ProcessingViewsCount+" documents loading. \t";
+            toolStripStatusLabel1.Text = LogicalView.InsertedViewsCount + " inserted documents into DB.   " + LogicalView.ProcessingViewsCount + " documents loading. \t";
             if (selectedItem == null)
             {
                 lblStatus1.Text = "Item not loaded or loading.";
                 lblInfoTitle.Text = String.Empty;
                 lblNoOfKeywords.Text = String.Empty;
                 lblUrl.Text = String.Empty;
-
+                txtDesc.Clear();
                 return;
             }
-             if (selectedItem.IsInitialized)
+            if (selectedItem.IsInitialized)
             {
                 lblStatus1.Text = selectedItem.Title + " loaded.";
                 lblInfoTitle.Text = selectedItem.Title;
+                txtDesc.Text = selectedItem.Description;
                 lblNoOfKeywords.Text = selectedItem.NumberOfKeywords.ToString();
                 lblUrl.Text = selectedItem.SourceUri.ToString();
                 chkInit.Checked = selectedItem.IsInitialized;
@@ -99,14 +100,14 @@ namespace Indexer
                 chkIns.Checked = selectedItem.IsInserted;
                 chkPros.Checked = selectedItem.IsProcessing;
             }
-            
+
         }
 
 
 
         private void startSererToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            System.Diagnostics.Process.Start("table_generator.exe");
         }
 
         private void IndexerForm_Load(object sender, EventArgs e)
@@ -145,27 +146,29 @@ namespace Indexer
             OpenFileDialog opfDialog = new OpenFileDialog();
             opfDialog.CheckFileExists = true;
             opfDialog.CheckPathExists = true;
-            opfDialog.Multiselect = false;
+            opfDialog.Multiselect = true;
             switch (opfDialog.ShowDialog())
             {
                 case DialogResult.OK:
-
-                    var urls = File.ReadAllLines(opfDialog.FileName);
-                    
-                    foreach (var url in urls)
+                    foreach (var file in opfDialog.FileNames)
                     {
-                        try
+                        var urls = File.ReadAllLines(file);
+
+                        foreach (var url in urls)
                         {
-                            var contentUri = new Uri(url);
-                            var lview = new LogicalView(contentUri);
-                            _documentList.Add(lview);
-                        }
-                        catch (UriFormatException er)
-                        {
-                            lblStatus1.Text = Resources.The_input_URL_is_invalid+" : "+er;
+                            try
+                            {
+                                if (url.Contains("google.") || url.Contains("googleusercontent.") || url.Contains("facebook.")) continue;
+                                var contentUri = new Uri(url);
+                                var lview = new LogicalView(contentUri);
+                                _documentList.Add(lview);
+                            }
+                            catch (UriFormatException er)
+                            {
+                                lblStatus1.Text = Resources.The_input_URL_is_invalid + " : " + er;
+                            }
                         }
                     }
-
                     break;
 
             }

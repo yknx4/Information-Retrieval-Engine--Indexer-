@@ -9,6 +9,7 @@
             public const string Id = "id";
             public const string Title = "title";
             public const string Url = "url";
+            public const string Description = "description";
             public const string UrlHash = "url_hash";
         }
          static public class TermEntry

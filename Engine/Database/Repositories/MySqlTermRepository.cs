@@ -3,15 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using System.Timers;
 using Engine.Database.Interfaces;
 using Engine.Model;
 using Engine.Tools;
 using MySql.Data.MySqlClient;
-using Timer = System.Timers.Timer;
 
 namespace Engine.Database.Repositories
 {
@@ -36,11 +33,12 @@ namespace Engine.Database.Repositories
         }
 
         private static ConcurrentQueue<object> toRetry = new ConcurrentQueue<object>();
-        private static int currentThreads = 0;
+        private static int _currentThreads;
         private static void CommitQuery(object source, ElapsedEventArgs e)
         {
-            currentThreads++;
-            if(currentThreads>Constants.MaximumTermsThreads)
+            if (!MySqlDbConnection.AreConnectionsAvailable) return;
+            _currentThreads++;
+            if (_currentThreads > Constants.MaximumTermsThreads) return;
             if (QueryQueue.IsEmpty)
             {
                 CommitTimer.Stop();
@@ -84,7 +82,7 @@ namespace Engine.Database.Repositories
                         {
                             try
                             {
-                                cmd.ExecuteNonQuery();
+                                if (cmd != null) cmd.ExecuteNonQuery();
                             }
                             catch (Exception ex)
                             {
@@ -93,7 +91,7 @@ namespace Engine.Database.Repositories
                         }
                     }
                 }
-                var conn = MySqlDbConnection.GetConnectionWithPriority();
+                var conn = MySqlDbConnection.GetConnection();
                 using (var cmd = conn.CreateCommand())
                 {
                     
@@ -119,7 +117,7 @@ namespace Engine.Database.Repositories
                     finally
                     {
                         MySqlDbConnection.ReturnConnection(conn);
-                        currentThreads--;
+                        _currentThreads--;
                     }
                 }
                 
@@ -164,7 +162,7 @@ namespace Engine.Database.Repositories
 
                 while (reader.Read())
                 {
-                    var tmpTerm = new Term()
+                    var tmpTerm = new Term
                     {
                         Id = reader.GetInt32(0),
                         Value = reader.GetString(1)
@@ -256,7 +254,7 @@ namespace Engine.Database.Repositories
         //TODO: Move retry to Async task, never get id on main thread.
         private static Dictionary<String, int> _termsIdDictionary = new Dictionary<string, int>();
 
-        private static int _singleTermCount = 0;
+        private static int _singleTermCount;
 
 
         public static int GetTermId(string value)
@@ -295,7 +293,6 @@ namespace Engine.Database.Repositories
                 {
                     found = true;
                     if (!_termsIdDictionary.ContainsKey(value.ToLowerInvariant())) _termsIdDictionary.Add(value.ToLowerInvariant(), id);
-                    continue;
                 }
 
 

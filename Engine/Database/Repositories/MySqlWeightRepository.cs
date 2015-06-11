@@ -3,12 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using System.Timers;
 using Engine.Database.Interfaces;
 using Engine.Tools;
-using MySql.Data.MySqlClient;
-using Timer = System.Timers.Timer;
 
 namespace Engine.Database.Repositories
 {
@@ -73,6 +70,7 @@ namespace Engine.Database.Repositories
 
         private static void CommitQuery(object source, ElapsedEventArgs e)
         {
+            if (!MySqlDbConnection.AreConnectionsAvailable) return;
             if(MySqlRepositoriesSync.IsTermRepositoryWorking) return;
             if (QueryQueue.IsEmpty)
             {
@@ -102,7 +100,7 @@ namespace Engine.Database.Repositories
             if(!(queueCount>0)) return;
             
             //using (var conn = new MySqlDbConnection(Constants.ConnectionString))
-            var conn = MySqlDbConnection.GetConnectionWithPriority();
+            var conn = MySqlDbConnection.GetConnection();
             using (var cmd = conn.CreateCommand())
             {
                 var finalQuery = queryBuilder.ToString().TrimEnd(',');
@@ -110,9 +108,21 @@ namespace Engine.Database.Repositories
                 //conn.Open();
                 cmd.CommandText = finalQuery;
                 cmd.CommandTimeout = Constants.MaxTimeout;
-                if(!string.IsNullOrEmpty(finalQuery))cmd.ExecuteNonQuery();
+                try
+                {
+                    if (!string.IsNullOrEmpty(finalQuery)) cmd.ExecuteNonQuery();
+                }
+                catch (Exception exc)
+                {
+                    EngineLogger.Log(ClassName, exc.ToString());
+                }
+                finally
+                {
+                    MySqlDbConnection.ReturnConnection(conn);
+                }
+                
             }
-            MySqlDbConnection.ReturnConnection(conn);
+           
             if (QueryQueue.IsEmpty)
             {
                 MySqlRepositoriesSync.IsWeightRepositoryWorking = false;

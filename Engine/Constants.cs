@@ -46,7 +46,7 @@ namespace Engine
         public abstract class Queries
         {
             public const string InsertDocumentQuery =
-                "INSERT IGNORE INTO `" + DataContract.DocumentEntry.TableName + "` (`" + DataContract.DocumentEntry.Url + "`,`" + DataContract.DocumentEntry.UrlHash + "`,`" + DataContract.DocumentEntry.Title + "`) VALUES (" + Parameters.Url + ",md5(" + Parameters.Url + ")," + Parameters.Title + ");";
+                "INSERT IGNORE INTO `" + DataContract.DocumentEntry.TableName + "` (`" + DataContract.DocumentEntry.Url + "`,`" + DataContract.DocumentEntry.UrlHash + "`,`" + DataContract.DocumentEntry.Title + "`,`" + DataContract.DocumentEntry.Description + "`) VALUES (" + Parameters.Url + ",md5(" + Parameters.Url + ")," + Parameters.Title + "," + Parameters.Description + ");";
 
             public const string InsertTermQuery =
                 "INSERT IGNORE INTO `" + DataContract.TermEntry.TableName + "` (`" + DataContract.TermEntry.Value +
@@ -76,6 +76,7 @@ namespace Engine
             public const string TermId = "@termid";
             public const string DocumentId = "@documentid";
             public const string Count = "@count";
+            public const string Description = "@description";
 
         }
 

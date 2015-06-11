@@ -15,6 +15,7 @@ namespace Engine.Database.Repositories
     public class MySqlDocumentRepository : IDocumentRepository
     {
         private const string ClassName = "MySqlDocumentRepository";
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private static readonly Timer CommitTimer;
         private static readonly ConcurrentQueue<Tuple<string, LogicalView>> QueryQueue;
 
@@ -30,10 +31,10 @@ namespace Engine.Database.Repositories
             CommitTimer.Enabled = true;
         }
 
-        private static int _inProgressCount = 0;
+        private static int _inProgressCount;
         private static void CommitQuery(object source, ElapsedEventArgs e)
         {
-
+            if(!MySqlDbConnection.AreConnectionsAvailable) return;
             if (QueryQueue.IsEmpty)
             {
                 MySqlRepositoriesSync.IsDocumentRepositoryWorking = false;
@@ -53,12 +54,12 @@ namespace Engine.Database.Repositories
             //                Constants.DocumentCommitInterval = 1000;
             //            }
             if (LogicalView.ProcessingViewsCount > 80) return;
-            if (_inProgressCount > 120) return;
+            if (_inProgressCount > 100) return;
             _inProgressCount++;
             MySqlRepositoriesSync.IsDocumentRepositoryWorking = true;
             var queryBuilder = new StringBuilder();
             //var queuedViews = new LinkedList<LogicalView>();
-            LogicalView queuedView = null;
+            LogicalView queuedView;
             //var queueTerms = new ConcurrentQueue<Tuple<Uri, Dictionary<string, int>>>();
             Tuple<string, LogicalView> queueItem;
             var queueCount = 0;
@@ -72,20 +73,53 @@ namespace Engine.Database.Repositories
                 }
                 // var lv = queueItem.Item2;
                 queuedView = queueItem.Item2;
-                int retryCount = 0;
-                while (!queuedView.IsInitialized)
+                
+
+                bool retry = false;
+                bool terminate = false;
+                try
                 {
                     queuedView.Initialize();
-                    if (retryCount > Constants.TermIdMaximumTries)
+                }
+                catch (Exception el)
+                {
+                    EngineLogger.Log(ClassName, "Algo fallo en el CommitQuery de MySqlDocumnet: " + el);
+                }
+                finally
+                {
+                    if (!queuedView.IsInitialized )
                     {
-                        Insert(queuedView);
-                        return;
+                        if (queuedView.RetryNumber < 25)
+                        {
+                            retry = true;
+                            queuedView.RetryNumber++;
+                        }
+                        else
+                        {
+                            terminate = true;
+                        }
+                        
                     }
-                    retryCount++;
+                    
+                }
+                if (terminate)
+                {
+                    EngineLogger.Log(ClassName,queuedView+" dropped.");
+                    return;
+                }
+                
+                if (retry)
+                {
+                    Insert(queuedView);
+                    EngineLogger.Log(ClassName, queuedView + " sent to retry.");
+                    return;
+                   
                 }
 
+
+
                 //queueTerms.Enqueue(new Tuple<Uri, Dictionary<string, int>>(lv.SourceUri, lv.IndexTermsCount));
-                queryBuilder.Append(GenericTools.NumberStatementParameter(queueItem.Item1, new[] { Constants.Parameters.Url, Constants.Parameters.Title }, queueCount));
+                queryBuilder.Append(GenericTools.NumberStatementParameter(queueItem.Item1, new[] { Constants.Parameters.Url, Constants.Parameters.Title, Constants.Parameters.Description }, queueCount));
                 // queuedViews.Add(queueItem.Item2);
                 queueCount++;
             }
@@ -108,6 +142,7 @@ namespace Engine.Database.Repositories
                 {
                     cmd.Parameters.AddWithValue(Constants.Parameters.Title + i, queuedView.Title);
                     cmd.Parameters.AddWithValue(Constants.Parameters.Url + i, queuedView.SourceUri);
+                    cmd.Parameters.AddWithValue(Constants.Parameters.Description + i, queuedView.Description);
                 }
                 cmd.CommandTimeout = Constants.MaxTimeout;
                 try
@@ -131,14 +166,18 @@ namespace Engine.Database.Repositories
                 {
                     EngineLogger.Log(ClassName, "Exception on query! Check it! " + ex);
                 }
+                finally
+                {
+                    MySqlDbConnection.ReturnConnection(conn);
+                }
             }
-            MySqlDbConnection.ReturnConnection(conn);
+            
             ITermRepository termRepository = new MySqlTermRepository();
-//            foreach (var queueTerm in queueTerms)
-//            {
-//                termRepository.InsertBatch(queueTerm.Item1, queueTerm.Item2);
-//            }
-            termRepository.InsertBatch(queuedView.SourceUri,queuedView.IndexTermsCount);
+            //            foreach (var queueTerm in queueTerms)
+            //            {
+            //                termRepository.InsertBatch(queueTerm.Item1, queueTerm.Item2);
+            //            }
+            termRepository.InsertBatch(queuedView.SourceUri, queuedView.IndexTermsCount);
 
             if (QueryQueue.IsEmpty)
             {

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Engine.Database.Repositories;
 using Engine.Model;
 
@@ -10,7 +8,8 @@ namespace Engine.Similarity
 {
     public class RetrievalEngine
     {
-        private static double TermSimilarity(double termWeightOnDocument, double termWeightOnQuery)
+        // ReSharper disable once UnusedParameter.Local
+        private static double TermSimilarity(double termWeightOnDocument, double termWeightOnQuery = 0)
         {
 //            var a = termWeightOnQuery*termWeightOnQuery;
 //            var b = termWeightOnDocument*termWeightOnQuery*termWeightOnDocument*termWeightOnQuery;

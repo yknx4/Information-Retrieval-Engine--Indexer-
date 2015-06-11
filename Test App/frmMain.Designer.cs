@@ -79,6 +79,7 @@
             this.txtText.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtText.Size = new System.Drawing.Size(776, 111);
             this.txtText.TabIndex = 0;
+            this.txtText.Visible = false;
             // 
             // label1
             // 
@@ -100,6 +101,7 @@
             this.label2.Size = new System.Drawing.Size(103, 17);
             this.label2.TabIndex = 3;
             this.label2.Text = "Broadcast Text";
+            this.label2.Visible = false;
             // 
             // txtPort
             // 
@@ -144,6 +146,7 @@
             this.btnSend.TabIndex = 21;
             this.btnSend.Text = "Send";
             this.btnSend.UseVisualStyleBackColor = true;
+            this.btnSend.Visible = false;
             this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
             // 
             // btnClose
@@ -213,6 +216,7 @@
             this.label6.Size = new System.Drawing.Size(90, 17);
             this.label6.TabIndex = 27;
             this.label6.Text = "Max Threads";
+            this.label6.Visible = false;
             // 
             // txtMaxThreads
             // 
@@ -223,6 +227,7 @@
             this.txtMaxThreads.Size = new System.Drawing.Size(65, 22);
             this.txtMaxThreads.TabIndex = 28;
             this.txtMaxThreads.Text = "100";
+            this.txtMaxThreads.Visible = false;
             this.txtMaxThreads.TextChanged += new System.EventHandler(this.txtMaxThreads_TextChanged);
             // 
             // label7
@@ -235,6 +240,7 @@
             this.label7.Size = new System.Drawing.Size(129, 17);
             this.label7.TabIndex = 29;
             this.label7.Text = "Max Send Attempts";
+            this.label7.Visible = false;
             // 
             // txtAttempts
             // 
@@ -245,6 +251,7 @@
             this.txtAttempts.Size = new System.Drawing.Size(52, 22);
             this.txtAttempts.TabIndex = 30;
             this.txtAttempts.Text = "3";
+            this.txtAttempts.Visible = false;
             this.txtAttempts.TextChanged += new System.EventHandler(this.txtAttempts_TextChanged);
             // 
             // lblConnected
@@ -284,6 +291,7 @@
             this.label8.Size = new System.Drawing.Size(109, 17);
             this.label8.TabIndex = 33;
             this.label8.Text = "Validate Interval";
+            this.label8.Visible = false;
             // 
             // txtValidateInterval
             // 
@@ -294,6 +302,7 @@
             this.txtValidateInterval.Size = new System.Drawing.Size(52, 22);
             this.txtValidateInterval.TabIndex = 34;
             this.txtValidateInterval.Text = "100";
+            this.txtValidateInterval.Visible = false;
             this.txtValidateInterval.TextChanged += new System.EventHandler(this.txtValidateInterval_TextChanged);
             // 
             // tcpServer1

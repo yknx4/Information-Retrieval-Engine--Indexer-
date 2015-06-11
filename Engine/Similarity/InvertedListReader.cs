@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Engine.Database;
 
 namespace Engine.Similarity
 {
     class InvertedListReader
     {
-        private static readonly Dictionary<int, Tuple<int, long>> AuxDictionary = null;
-        private static int cnt = 0;
+        private static readonly Dictionary<int, Tuple<int, long>> AuxDictionary;
+        private static int _cnt;
         static InvertedListReader ()
         {
-            cnt++;
+            _cnt++;
             if (AuxDictionary == null) { 
             AuxDictionary = new Dictionary<int, Tuple<int, long>>();
             using (var a = new BinaryReader(File.OpenRead(Constants.FinalAuxiliarFile)))
@@ -37,6 +32,12 @@ namespace Engine.Similarity
                 }
             }
             }
+        }
+
+        public static int Count
+        {
+            get { return _cnt; }
+            set { _cnt = value; }
         }
 
         public static Tuple<int,double>[] GetDocumentsForIndex(int index)
