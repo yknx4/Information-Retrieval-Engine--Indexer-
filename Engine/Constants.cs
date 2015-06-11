@@ -28,14 +28,16 @@ namespace Engine
             }
         }
 
+        public static int MaxDocumentTries = 5;
+
         public const int MaximumTermsThreads = 20;
 
         public const int GroupSize = 3;
 
         public const int TermIdMaximumTries = 3;
 
-        public const double CommitInterval = 100;
-        public static double DocumentCommitInterval = 500;
+        public const double CommitInterval = 300;
+        public static double DocumentCommitInterval = 1000;
         public const double RetryInterval = 15000;
         public const int QueriesPerTransaction = 10000;
         public const int DocumentQueriesPerTransaction = 2;
