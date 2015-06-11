@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
+using Engine.Database;
 using Engine.Database.Interfaces;
 using Engine.Database.Repositories;
 using Engine.Model;
@@ -113,6 +114,8 @@ namespace Indexer
         private void IndexerForm_Load(object sender, EventArgs e)
         {
             lstUrs.DataSource = _documentList;
+            tmrEngineInformation.Start();
+
         }
 
         private void DoWork(object sender, DoWorkEventArgs e)
@@ -173,6 +176,23 @@ namespace Indexer
 
             }
 
+        }
+
+        private void updateEngineInformation(object sender, EventArgs e)
+        {
+            lblDocsThreads.Text = MySqlDocumentRepository.OngoingDocumentThreads.ToString();
+            lblTermsThreads.Text = MySqlTermRepository.CurrentThreads.ToString();
+            lblWeightThreads.Text = MySqlWeightRepository.CurrentThreads.ToString();
+            lblDocsLeft.Text = MySqlDocumentRepository.DocumentsLeft.ToString();
+            lblTermsLeft.Text = MySqlTermRepository.TermsLeft.ToString();
+            lblWeightLeft.Text = MySqlWeightRepository.WeightsLeft.ToString();
+            lblConnectionsAvailable.Text = MySqlDbConnection.AvailableConnections.ToString();
+            lblLastConnection.Text = MySqlDbConnection.LastConnection.ToString();
+        }
+
+        private void btnResetConnection_Click(object sender, EventArgs e)
+        {
+            Engine.Database.MySqlDbConnection.reset();
         }
 
 

@@ -5,13 +5,29 @@ using MySql.Data.MySqlClient;
 
 namespace Engine.Database
 {
-    class MySqlDbConnection
+    public class MySqlDbConnection
     {
         private const string ClassName = "MySqlDbCoonection";
         private static volatile int _currentConnection;
         private static volatile int _lastConnection;
         private static readonly ConcurrentQueue<MySqlConnection> MySqlConnections = new ConcurrentQueue<MySqlConnection>();
-        
+
+        public static int AvailableConnections
+        {
+            get
+            {
+                return Constants.MaxConnections- _currentConnection;
+            }
+        }
+
+        public static int LastConnection
+        {
+            get
+            {
+                return _lastConnection;
+                
+            }
+        }
         public static  MySqlConnection GetConnection()
         {
             var firstMessage = true;
@@ -92,6 +108,11 @@ namespace Engine.Database
             MySqlConnections.Enqueue(inputConnection);
             _currentConnection--;
 
+        }
+
+        public static void reset()
+        {
+            _currentConnection = 0;
         }
     }
 }

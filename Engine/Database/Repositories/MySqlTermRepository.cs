@@ -19,6 +19,10 @@ namespace Engine.Database.Repositories
         private static readonly Timer CommitTimer;
         private static readonly ConcurrentQueue<Tuple<string, string>> QueryQueue;
 
+        public static int TermsLeft
+        {
+            get { return QueryQueue.Count; }
+        }
 
         static MySqlTermRepository()
         {
@@ -34,10 +38,17 @@ namespace Engine.Database.Repositories
 
         private static ConcurrentQueue<object> toRetry = new ConcurrentQueue<object>();
         private static int _currentThreads;
+
         private static void CommitQuery(object source, ElapsedEventArgs e)
         {
-            if (!MySqlDbConnection.AreConnectionsAvailable) return;
             _currentThreads++;
+            CommitQuery(source,e,true);
+            _currentThreads--;
+        }
+        private static void CommitQuery(object source, ElapsedEventArgs e, bool m)
+        {
+            if (!MySqlDbConnection.AreConnectionsAvailable) return;
+            
             if (_currentThreads > Constants.MaximumTermsThreads) return;
             if (QueryQueue.IsEmpty)
             {
@@ -117,7 +128,7 @@ namespace Engine.Database.Repositories
                     finally
                     {
                         MySqlDbConnection.ReturnConnection(conn);
-                        _currentThreads--;
+                       
                     }
                 }
                 
@@ -148,6 +159,12 @@ namespace Engine.Database.Repositories
         {
             get { return _termsIdDictionary.Count; }
         }
+
+        public static int CurrentThreads
+        {
+            get { return _currentThreads; }
+        }
+
         public IEnumerable<Term> GetAll()
         {
             var results = new List<Term>();

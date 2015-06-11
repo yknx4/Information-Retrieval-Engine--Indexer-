@@ -82,6 +82,7 @@ namespace Engine.Model
 
         public string Description { get; private set; }
 
+        public string OriginalSourceCode { get; set; }
         private void AddTerm(String term)
         {
             //term = term.ToLower();
@@ -108,8 +109,9 @@ namespace Engine.Model
                     using (var client = new WebClient())
                     {
                         client.Encoding = Encoding.UTF8;
-                        Data = client.DownloadString(SourceUri);
+                        OriginalSourceCode = client.DownloadString(SourceUri);
                     }
+                    Data = OriginalSourceCode;
                     Data = WebUtility.HtmlDecode(Data);
                     Data = StringTools.RemoveDiacritics(Data);
                     Title = HtmlTools.ExtractTitle(Data);
@@ -140,6 +142,7 @@ namespace Engine.Model
             catch (Exception)
             {
                 IsInitialized = false;
+                EngineLogger.Log(this, "Failed to initialize: "+this);
             }
         }
 

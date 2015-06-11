@@ -31,6 +31,7 @@ namespace Indexer
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lblStatus1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -63,9 +64,29 @@ namespace Indexer
             this.label2 = new System.Windows.Forms.Label();
             this.bgwLoadData = new System.ComponentModel.BackgroundWorker();
             this.bgwInsertAll = new System.ComponentModel.BackgroundWorker();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.btnResetConnection = new System.Windows.Forms.Button();
+            this.lblConnectionsAvailable = new System.Windows.Forms.Label();
+            this.lblLastConnection = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.lblWeightLeft = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.lblTermsLeft = new System.Windows.Forms.Label();
+            this.label15 = new System.Windows.Forms.Label();
+            this.lblDocsLeft = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.lblWeightThreads = new System.Windows.Forms.Label();
+            this.lblTermsThreads = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.lblDocsThreads = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
+            this.tmrEngineInformation = new System.Windows.Forms.Timer(this.components);
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // statusStrip1
@@ -76,7 +97,7 @@ namespace Indexer
             this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 416);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(716, 25);
+            this.statusStrip1.Size = new System.Drawing.Size(959, 25);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -101,7 +122,7 @@ namespace Indexer
             this.generateTableToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(716, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(959, 28);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -186,7 +207,7 @@ namespace Indexer
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtUrl.Location = new System.Drawing.Point(58, 31);
             this.txtUrl.Name = "txtUrl";
-            this.txtUrl.Size = new System.Drawing.Size(566, 22);
+            this.txtUrl.Size = new System.Drawing.Size(809, 22);
             this.txtUrl.TabIndex = 3;
             // 
             // label1
@@ -201,7 +222,7 @@ namespace Indexer
             // btnAddUrl
             // 
             this.btnAddUrl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddUrl.Location = new System.Drawing.Point(630, 30);
+            this.btnAddUrl.Location = new System.Drawing.Point(873, 30);
             this.btnAddUrl.Name = "btnAddUrl";
             this.btnAddUrl.Size = new System.Drawing.Size(75, 23);
             this.btnAddUrl.TabIndex = 5;
@@ -239,23 +260,26 @@ namespace Indexer
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Location = new System.Drawing.Point(252, 75);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(452, 324);
+            this.groupBox1.Size = new System.Drawing.Size(696, 185);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Information";
             // 
             // txtDesc
             // 
-            this.txtDesc.Location = new System.Drawing.Point(156, 83);
+            this.txtDesc.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDesc.Location = new System.Drawing.Point(505, 21);
             this.txtDesc.Multiline = true;
             this.txtDesc.Name = "txtDesc";
-            this.txtDesc.Size = new System.Drawing.Size(145, 128);
+            this.txtDesc.Size = new System.Drawing.Size(185, 128);
             this.txtDesc.TabIndex = 11;
             // 
             // label4
             // 
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(64, 80);
+            this.label4.Location = new System.Drawing.Point(416, 24);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(83, 17);
             this.label4.TabIndex = 10;
@@ -266,7 +290,7 @@ namespace Indexer
             // 
             this.chkPros.AutoCheck = false;
             this.chkPros.AutoSize = true;
-            this.chkPros.Location = new System.Drawing.Point(243, 217);
+            this.chkPros.Location = new System.Drawing.Point(59, 110);
             this.chkPros.Name = "chkPros";
             this.chkPros.Size = new System.Drawing.Size(100, 21);
             this.chkPros.TabIndex = 9;
@@ -277,7 +301,7 @@ namespace Indexer
             // 
             this.chkIns.AutoCheck = false;
             this.chkIns.AutoSize = true;
-            this.chkIns.Location = new System.Drawing.Point(156, 217);
+            this.chkIns.Location = new System.Drawing.Point(153, 83);
             this.chkIns.Name = "chkIns";
             this.chkIns.Size = new System.Drawing.Size(81, 21);
             this.chkIns.TabIndex = 8;
@@ -288,7 +312,7 @@ namespace Indexer
             // 
             this.chkInit.AutoCheck = false;
             this.chkInit.AutoSize = true;
-            this.chkInit.Location = new System.Drawing.Point(52, 217);
+            this.chkInit.Location = new System.Drawing.Point(59, 83);
             this.chkInit.Name = "chkInit";
             this.chkInit.Size = new System.Drawing.Size(88, 21);
             this.chkInit.TabIndex = 7;
@@ -364,11 +388,209 @@ namespace Indexer
             this.bgwInsertAll.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.bgwInsertAll.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.AlTerminarInsertar);
             // 
+            // groupBox2
+            // 
+            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.btnResetConnection);
+            this.groupBox2.Controls.Add(this.lblConnectionsAvailable);
+            this.groupBox2.Controls.Add(this.lblLastConnection);
+            this.groupBox2.Controls.Add(this.label9);
+            this.groupBox2.Controls.Add(this.label8);
+            this.groupBox2.Controls.Add(this.lblWeightLeft);
+            this.groupBox2.Controls.Add(this.label17);
+            this.groupBox2.Controls.Add(this.lblTermsLeft);
+            this.groupBox2.Controls.Add(this.label15);
+            this.groupBox2.Controls.Add(this.lblDocsLeft);
+            this.groupBox2.Controls.Add(this.label13);
+            this.groupBox2.Controls.Add(this.lblWeightThreads);
+            this.groupBox2.Controls.Add(this.lblTermsThreads);
+            this.groupBox2.Controls.Add(this.label7);
+            this.groupBox2.Controls.Add(this.label6);
+            this.groupBox2.Controls.Add(this.lblDocsThreads);
+            this.groupBox2.Controls.Add(this.label11);
+            this.groupBox2.Location = new System.Drawing.Point(253, 266);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(695, 133);
+            this.groupBox2.TabIndex = 12;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Engine (Debug Information)";
+            // 
+            // btnResetConnection
+            // 
+            this.btnResetConnection.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnResetConnection.Location = new System.Drawing.Point(501, 86);
+            this.btnResetConnection.Name = "btnResetConnection";
+            this.btnResetConnection.Size = new System.Drawing.Size(187, 41);
+            this.btnResetConnection.TabIndex = 19;
+            this.btnResetConnection.Text = "Reset connections status";
+            this.btnResetConnection.UseVisualStyleBackColor = true;
+            this.btnResetConnection.Click += new System.EventHandler(this.btnResetConnection_Click);
+            // 
+            // lblConnectionsAvailable
+            // 
+            this.lblConnectionsAvailable.AutoSize = true;
+            this.lblConnectionsAvailable.Location = new System.Drawing.Point(211, 86);
+            this.lblConnectionsAvailable.Name = "lblConnectionsAvailable";
+            this.lblConnectionsAvailable.Size = new System.Drawing.Size(16, 17);
+            this.lblConnectionsAvailable.TabIndex = 18;
+            this.lblConnectionsAvailable.Text = "0";
+            // 
+            // lblLastConnection
+            // 
+            this.lblLastConnection.AutoSize = true;
+            this.lblLastConnection.Location = new System.Drawing.Point(211, 69);
+            this.lblLastConnection.Name = "lblLastConnection";
+            this.lblLastConnection.Size = new System.Drawing.Size(16, 17);
+            this.lblLastConnection.TabIndex = 17;
+            this.lblLastConnection.Text = "0";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(50, 86);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(155, 17);
+            this.label9.TabIndex = 16;
+            this.label9.Text = "Connections Available: ";
+            this.label9.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(84, 69);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(122, 17);
+            this.label8.TabIndex = 15;
+            this.label8.Text = "Last Connection:  ";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // lblWeightLeft
+            // 
+            this.lblWeightLeft.AutoSize = true;
+            this.lblWeightLeft.Location = new System.Drawing.Point(374, 52);
+            this.lblWeightLeft.Name = "lblWeightLeft";
+            this.lblWeightLeft.Size = new System.Drawing.Size(16, 17);
+            this.lblWeightLeft.TabIndex = 14;
+            this.lblWeightLeft.Text = "0";
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(276, 52);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(95, 17);
+            this.label17.TabIndex = 13;
+            this.label17.Text = "Weights Left: ";
+            this.label17.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // lblTermsLeft
+            // 
+            this.lblTermsLeft.AutoSize = true;
+            this.lblTermsLeft.Location = new System.Drawing.Point(374, 35);
+            this.lblTermsLeft.Name = "lblTermsLeft";
+            this.lblTermsLeft.Size = new System.Drawing.Size(16, 17);
+            this.lblTermsLeft.TabIndex = 12;
+            this.lblTermsLeft.Text = "0";
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(287, 35);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(84, 17);
+            this.label15.TabIndex = 11;
+            this.label15.Text = "Terms Left: ";
+            this.label15.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // lblDocsLeft
+            // 
+            this.lblDocsLeft.AutoSize = true;
+            this.lblDocsLeft.Location = new System.Drawing.Point(374, 18);
+            this.lblDocsLeft.Name = "lblDocsLeft";
+            this.lblDocsLeft.Size = new System.Drawing.Size(16, 17);
+            this.lblDocsLeft.TabIndex = 10;
+            this.lblDocsLeft.Text = "0";
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(256, 18);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(115, 17);
+            this.label13.TabIndex = 9;
+            this.label13.Text = "Documents Left: ";
+            this.label13.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // lblWeightThreads
+            // 
+            this.lblWeightThreads.AutoSize = true;
+            this.lblWeightThreads.Location = new System.Drawing.Point(211, 52);
+            this.lblWeightThreads.Name = "lblWeightThreads";
+            this.lblWeightThreads.Size = new System.Drawing.Size(16, 17);
+            this.lblWeightThreads.TabIndex = 8;
+            this.lblWeightThreads.Text = "0";
+            // 
+            // lblTermsThreads
+            // 
+            this.lblTermsThreads.AutoSize = true;
+            this.lblTermsThreads.Location = new System.Drawing.Point(211, 35);
+            this.lblTermsThreads.Name = "lblTermsThreads";
+            this.lblTermsThreads.Size = new System.Drawing.Size(16, 17);
+            this.lblTermsThreads.TabIndex = 7;
+            this.lblTermsThreads.Text = "0";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(26, 52);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(179, 17);
+            this.label7.TabIndex = 6;
+            this.label7.Text = "Weight repository threads: ";
+            this.label7.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(30, 35);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(175, 17);
+            this.label6.TabIndex = 5;
+            this.label6.Text = "Terms repository threads: ";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // lblDocsThreads
+            // 
+            this.lblDocsThreads.AutoSize = true;
+            this.lblDocsThreads.Location = new System.Drawing.Point(211, 18);
+            this.lblDocsThreads.Name = "lblDocsThreads";
+            this.lblDocsThreads.Size = new System.Drawing.Size(16, 17);
+            this.lblDocsThreads.TabIndex = 4;
+            this.lblDocsThreads.Text = "0";
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(6, 18);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(199, 17);
+            this.label11.TabIndex = 0;
+            this.label11.Text = "Document repository threads: ";
+            this.label11.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // tmrEngineInformation
+            // 
+            this.tmrEngineInformation.Interval = 1000;
+            this.tmrEngineInformation.Tick += new System.EventHandler(this.updateEngineInformation);
+            // 
             // IndexerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(716, 441);
+            this.ClientSize = new System.Drawing.Size(959, 441);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lstUrs);
             this.Controls.Add(this.btnAddUrl);
@@ -386,6 +608,8 @@ namespace Indexer
             this.menuStrip1.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -425,6 +649,25 @@ namespace Indexer
         private ToolStripStatusLabel toolStripStatusLabel1;
         private TextBox txtDesc;
         private Label label4;
+        private GroupBox groupBox2;
+        private Label lblWeightThreads;
+        private Label lblTermsThreads;
+        private Label label7;
+        private Label label6;
+        private Label lblDocsThreads;
+        private Label label11;
+        private Label lblWeightLeft;
+        private Label label17;
+        private Label lblTermsLeft;
+        private Label label15;
+        private Label lblDocsLeft;
+        private Label label13;
+        private Timer tmrEngineInformation;
+        private Button btnResetConnection;
+        private Label lblConnectionsAvailable;
+        private Label lblLastConnection;
+        private Label label9;
+        private Label label8;
     }
 }
 

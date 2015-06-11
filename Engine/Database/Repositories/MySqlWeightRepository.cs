@@ -29,6 +29,13 @@ namespace Engine.Database.Repositories
             
         }
         private static  int _lastTermCount = -1;
+
+        public static int WeightsLeft
+        {
+            get { return QueryQueue.Count; }
+        }
+
+        public static int CurrentThreads { get; private set; }
         private static void RetryQuery(object sender, ElapsedEventArgs e)
         {
             
@@ -69,6 +76,12 @@ namespace Engine.Database.Repositories
         private static readonly ConcurrentQueue<Tuple<int, KeyValuePair<string, int>>> RetryQueue;
 
         private static void CommitQuery(object source, ElapsedEventArgs e)
+        {
+            CurrentThreads++;
+            CommitQuery(source, e, true);
+            CurrentThreads--;
+        }
+        private static void CommitQuery(object source, ElapsedEventArgs e,bool asd)
         {
             if (!MySqlDbConnection.AreConnectionsAvailable) return;
             if(MySqlRepositoriesSync.IsTermRepositoryWorking) return;

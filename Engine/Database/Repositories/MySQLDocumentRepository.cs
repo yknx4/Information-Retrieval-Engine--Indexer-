@@ -31,9 +31,23 @@ namespace Engine.Database.Repositories
             CommitTimer.Enabled = true;
         }
 
+        public static int OngoingDocumentThreads { get; private set; }
+
+        public static int DocumentsLeft
+        {
+            get { return QueryQueue.Count; }
+        }
         private static int _inProgressCount;
+
         private static void CommitQuery(object source, ElapsedEventArgs e)
         {
+            OngoingDocumentThreads++;
+            CommitQuery(source, e,true);
+            OngoingDocumentThreads--;
+        }
+        private static void CommitQuery(object source, ElapsedEventArgs e, bool count)
+        {
+            
             if(!MySqlDbConnection.AreConnectionsAvailable) return;
             if (QueryQueue.IsEmpty)
             {
@@ -55,6 +69,7 @@ namespace Engine.Database.Repositories
             //            }
             if (LogicalView.ProcessingViewsCount > 80) return;
             if (_inProgressCount > 100) return;
+            
             _inProgressCount++;
             MySqlRepositoriesSync.IsDocumentRepositoryWorking = true;
             var queryBuilder = new StringBuilder();
@@ -80,6 +95,7 @@ namespace Engine.Database.Repositories
                 try
                 {
                     queuedView.Initialize();
+                    
                 }
                 catch (Exception el)
                 {
@@ -100,6 +116,7 @@ namespace Engine.Database.Repositories
                         }
                         
                     }
+
                     
                 }
                 if (terminate)
@@ -110,12 +127,14 @@ namespace Engine.Database.Repositories
                 
                 if (retry)
                 {
+                    if (queuedView.RetryNumber > Constants.MaxDocumentTries) { 
                     Insert(queuedView);
                     EngineLogger.Log(ClassName, queuedView + " sent to retry.");
                     return;
-                   
+                    }
+                    EngineLogger.Log(ClassName, queuedView + " failed a lot of times. Dropping.");
+                    return;
                 }
-
 
 
                 //queueTerms.Enqueue(new Tuple<Uri, Dictionary<string, int>>(lv.SourceUri, lv.IndexTermsCount));

@@ -6,37 +6,37 @@ using MySql.Data.MySqlClient;
 
 namespace TableFileGenerator
 {
-    class Program
+    internal class Program
     {
-        double Idf(int i)
+        private static int cnt;
+        private readonly Dictionary<int, int> _documentMaxTf = new Dictionary<int, int>();
+
+        private readonly Dictionary<int, AuxiliarFileEntry> _firstAuxiliarDictionary =
+            new Dictionary<int, AuxiliarFileEntry>();
+
+        private readonly Dictionary<int, int> _termDf = new Dictionary<int, int>();
+        private int[] _currentDocs;
+        private Document _currentDocument;
+        private bool _hasMoreDocuments = true;
+
+        private double Idf(int i)
         {
             return Math.Log(_documentMaxTf.Count)/_termDf[i];
         }
 
-        double NormalizedFrecuencie(int docid, int frecuencia)
+        private double NormalizedFrecuencie(int docid, int frecuencia)
         {
             return ((double) frecuencia)/_documentMaxTf[docid];
         }
 
-        double Weight(int indice, int documento, int frecuencia)
+        private double Weight(int indice, int documento, int frecuencia)
         {
-            return NormalizedFrecuencie(documento,frecuencia)*Idf(indice);
+            return NormalizedFrecuencie(documento, frecuencia)*Idf(indice);
         }
 
-
-        private readonly Dictionary<int, int> _documentMaxTf = new Dictionary<int, int>();
-        private readonly Dictionary<int, int> _termDf = new Dictionary<int, int>();
-        private int[] _currentDocs;
-        class Document
+        private Document GenerateDocument(int docuementId)
         {
-            public int Id { get; set; }
-            public readonly Queue<Tuple<int, int>> KeysAndCountInts = new Queue<Tuple<int, int>>();
-        }
-
-        private Document _currentDocument;
-        Document GenerateDocument(int docuementId)
-        {
-            var results = new Document { Id = docuementId };
+            var results = new Document {Id = docuementId};
             using (var conn = new MySqlConnection(Constants.ConnectionString))
             using (var cmd = conn.CreateCommand())
             {
@@ -65,16 +65,16 @@ namespace TableFileGenerator
                     i++;
                 }
                 if (!_documentMaxTf.ContainsKey(docuementId))
-                _documentMaxTf.Add(docuementId, valmax);
+                    _documentMaxTf.Add(docuementId, valmax);
             }
             return results;
         }
-        private bool _hasMoreDocuments = true;
 
         public int[] GetDocumentsId(int offset)
         {
             return GetDocumentsId(offset, Constants.DefaultDocumentCount);
         }
+
         public int[] GetDocumentsId(int offset, int count)
         {
             var results = new int[10];
@@ -102,7 +102,7 @@ namespace TableFileGenerator
             return results;
         }
 
-        void Exec()
+        private void Exec()
         {
             DocumentFile();
             IntermediateFile();
@@ -119,14 +119,13 @@ namespace TableFileGenerator
 //            }
             using (var r = new BinaryReader(File.OpenRead(Constants.IntermediateFileName)))
             using (var w = new BinaryWriter(File.Open(Constants.FinalIndexFile, FileMode.Create)))
-            //using (var a = new BinaryWriter(File.Open(Constants.FinalAuxiliarFile, FileMode.OpenOrCreate)))
+                //using (var a = new BinaryWriter(File.Open(Constants.FinalAuxiliarFile, FileMode.OpenOrCreate)))
             {
-                
                 foreach (var tentr in _firstAuxiliarDictionary)
                 {
                     var indexid = tentr.Key;
-                    
-                    Console.WriteLine("Term "+indexid);
+
+                    Console.WriteLine("Term " + indexid);
                     // 2.
                     // Important variables:
                     //int length = (int)b.BaseStream.Length;
@@ -146,7 +145,7 @@ namespace TableFileGenerator
                         var pointer = r.ReadInt64();
                         pos = pointer;
                         w.Write(docid);
-                        w.Write(Weight(indexid, docid, frec));                        
+                        w.Write(Weight(indexid, docid, frec));
                         count++;
                     } while (pos != -1);
 
@@ -154,11 +153,11 @@ namespace TableFileGenerator
                     var storedCount = _termDf[indexid];
                     if (count == storedCount)
                     {
-                        Console.WriteLine(" OK");    
+                        Console.WriteLine(" OK");
                     }
                     else
                     {
-                        Console.WriteLine("Fail");   
+                        Console.WriteLine("Fail");
                     }
                 }
             }
@@ -169,10 +168,11 @@ namespace TableFileGenerator
                 cnt++;
                 foreach (var auxiliarFileEntry in _firstAuxiliarDictionary)
                 {
-                    testDic.Add(auxiliarFileEntry.Key,true);
-                    Console.WriteLine("Written {0} - {1} - {2} to Auxiliar File", auxiliarFileEntry.Value.term, auxiliarFileEntry.Value.df, auxiliarFileEntry.Value.pointer);
+                    testDic.Add(auxiliarFileEntry.Key, true);
+                    Console.WriteLine("Written {0} - {1} - {2} to Auxiliar File", auxiliarFileEntry.Value.term,
+                        auxiliarFileEntry.Value.df, auxiliarFileEntry.Value.pointer);
                     a.Write(auxiliarFileEntry.Value.term);
-                   // a.Write(auxiliarFileEntry.Key);
+                    // a.Write(auxiliarFileEntry.Key);
                     a.Write(auxiliarFileEntry.Value.df);
                     a.Write(auxiliarFileEntry.Value.pointer);
                 }
@@ -181,8 +181,6 @@ namespace TableFileGenerator
             Console.Read();
         }
 
-        private static int cnt = 0;
-        readonly Dictionary<int, AuxiliarFileEntry> _firstAuxiliarDictionary = new Dictionary<int, AuxiliarFileEntry>();
         private void IntermediateFile()
         {
             using (new BinaryWriter(File.Open(Constants.IntermediateFileName, FileMode.Create)))
@@ -194,60 +192,45 @@ namespace TableFileGenerator
             Console.WriteLine();
             Console.WriteLine("Document ID\tTerm Count\tNext");
 
-            
+
             var entry = new AuxiliarFileEntry();
             using (var w = new BinaryWriter(File.Open(Constants.IntermediateFileName, FileMode.Create)))
             using (var r = new BinaryReader(File.OpenRead(Constants.DocumentsFileName)))
             {
-                 while (r.BaseStream.Position != r.BaseStream.Length)
-                 {
-                     var docid = r.ReadInt32();
-                     var termid = r.ReadInt32();
-                     var count = r.ReadInt32();
-                     if (!_firstAuxiliarDictionary.ContainsKey(termid))
-                     {
-                         var newEntry = new AuxiliarFileEntry
-                         {
-                             pointer = w.BaseStream.Position, 
-                             df = 1, 
-                             term = termid
-                         };
-                         _firstAuxiliarDictionary.Add(termid,newEntry);
+                while (r.BaseStream.Position != r.BaseStream.Length)
+                {
+                    var docid = r.ReadInt32();
+                    var termid = r.ReadInt32();
+                    var count = r.ReadInt32();
+                    if (!_firstAuxiliarDictionary.ContainsKey(termid))
+                    {
+                        var newEntry = new AuxiliarFileEntry
+                        {
+                            pointer = w.BaseStream.Position,
+                            df = 1,
+                            term = termid
+                        };
+                        _firstAuxiliarDictionary.Add(termid, newEntry);
 
-                         w.Write(docid);
-                         w.Write(count);
-                         w.Write((long)-1);
-                         Console.WriteLine(docid + "\t" + count + "\t" + "NULL" );
-                     }
-                     else
-                     {
-                         var oldEntry = _firstAuxiliarDictionary[termid];
-                         var oldPos = oldEntry.pointer;
-                         var newPos = w.BaseStream.Position;
-                         oldEntry.df++;
-                         oldEntry.pointer = newPos;
-                         w.Write(docid);
-                         w.Write(count);
-                         w.Write(oldPos);
-                         Console.WriteLine(docid + "\t" +count+ "\t" + oldPos);
-                     }
-                 }
-                
-
-
-
+                        w.Write(docid);
+                        w.Write(count);
+                        w.Write((long) -1);
+                        Console.WriteLine(docid + "\t" + count + "\t" + "NULL");
+                    }
+                    else
+                    {
+                        var oldEntry = _firstAuxiliarDictionary[termid];
+                        var oldPos = oldEntry.pointer;
+                        var newPos = w.BaseStream.Position;
+                        oldEntry.df++;
+                        oldEntry.pointer = newPos;
+                        w.Write(docid);
+                        w.Write(count);
+                        w.Write(oldPos);
+                        Console.WriteLine(docid + "\t" + count + "\t" + oldPos);
+                    }
+                }
             }
-
-
-
-
-
-    
-
-
-
-
-
 
 
 //            using (var r = new BinaryReader(File.OpenRead(Constants.DocumentsFileName)))
@@ -262,16 +245,18 @@ namespace TableFileGenerator
 //                }
 //            }
         }
+
         private void DocumentFile()
         {
             Console.WriteLine("Document File");
-           
+
             var documentPointer = 0;
             using (var b = new BinaryWriter(File.Open(Constants.DocumentsFileName, FileMode.Create)))
             {
                 while (_hasMoreDocuments)
                 {
-                    Console.WriteLine("Fetching documents " + documentPointer + " to " + (documentPointer + Constants.DefaultDocumentCount));
+                    Console.WriteLine("Fetching documents " + documentPointer + " to " +
+                                      (documentPointer + Constants.DefaultDocumentCount));
                     _currentDocs = GetDocumentsId(documentPointer);
                     documentPointer += Constants.DefaultDocumentCount;
                     foreach (var currentDoc in _currentDocs)
@@ -287,25 +272,26 @@ namespace TableFileGenerator
                             b.Write(item.Item2);
                         }
                     }
-
-
-
-
                 }
             }
         }
-       
-        static void Main(string[] args)
+
+        private static void Main(string[] args)
         {
             new Program().Exec();
+        }
+
+        private class Document
+        {
+            public readonly Queue<Tuple<int, int>> KeysAndCountInts = new Queue<Tuple<int, int>>();
+            public int Id { get; set; }
         }
     }
 
     internal class AuxiliarFileEntry
     {
-        public int term;
         public int df;
         public long pointer;
-
+        public int term;
     }
 }
